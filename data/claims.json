@@ -1,0 +1,63 @@
+{
+    "issuers": {
+        "issuer00": {
+            "name": "Government"
+        },
+        "issuer01": {
+            "name": "Facebook"
+        }
+    },
+    "claims": {
+        "ken": [
+            {
+                "issuer": "issuer00",
+                "claims": {
+                    "birth_day": "1990/01/01",
+                    "nationality": "Vietnam",
+                    "name": "Ken"
+                }
+            },
+            {
+                "issuer": "issuer01",
+                "claims": {
+                    "account_name": "ken",
+                    "provider": "facebook"
+                }
+            }
+        ],
+        "jupiter": [
+            {
+                "issuer": "issuer00",
+                "claims": {
+                    "birth_day": "1989/01/02",
+                    "nationality": "Vietnam",
+                    "name": "Jupiter"
+                }
+            }
+        ],
+        "garnet": [
+            {
+                "issuer": "issuer01",
+                "claims": {
+                    "account_name": "garnet",
+                    "provider": "facebook"
+                }
+            }
+        ]
+    },
+    "revocation": {
+        "proofOfNonMemberships": [],
+        "revocationTreeRoots": [],
+        "proofOfStateChanges": [],
+        "revokedClaims": [
+            {
+                "holder": "jupiter",
+                "index": 0
+            },
+            {
+                "holder": "garnet",
+                "index": 0
+            }
+        ]
+    }
+}
