@@ -20,11 +20,11 @@ import {
   unpackPublicKey
 } from "@zk-kit/eddsa-poseidon"
 import path from "path";
-import { Blake512 } from "blake-hash/lib";
+// import { Blake512 } from "blake-hash/lib";
 import createBlakeHash from "blake-hash";
 
 
-async function generateRevokedData(data) {
+async function generateRevokedData(data: any) {
   const hash = (childNodes: ChildNodes) => {
     let hashed_value: any;
 
@@ -50,18 +50,18 @@ async function generateRevokedData(data) {
     const claim = data.claims[holder][index];
 
     const hashedClaim = `0x${claim["hash"]}`;
-      console.log(hashedClaim);
+      // console.log(hashedClaim);
       const intClaim = BigInt(hashedClaim);
 
       revocationTree.add(intClaim, intClaim);
       const root = revocationTree.root;
 
-      console.log(root);
+      // console.log(root);
 
       data.revocation.revocationTreeRoots.push(root);
   }
 
-  console.log(revokedKeys);
+  // console.log(revokedKeys);
 
   for (const holder_name in data.claims) {
     for (let index = 0; index < data.claims[holder_name].length; index ++) {
@@ -70,13 +70,13 @@ async function generateRevokedData(data) {
 
       // if (!revokedKeys.has(key)) {
         const hashedClaim = `0x${claim["hash"]}`;
-        console.log(hashedClaim);
+        // console.log(hashedClaim);
         const intClaim = BigInt(hashedClaim);
         const proof = revocationTree.createProof(intClaim);
         claim["nonRevocationProof"] = proof;
         claim["revocationTreeVersion"] = data.revocation.revocationTreeRoots.length - 1;
 
-        console.log(key);
+        // console.log(key);
       // } else {
       //   claim["nonRevocationProof"] = undefined;
       // }
@@ -84,7 +84,7 @@ async function generateRevokedData(data) {
   }
 }
 
-async function generateIssuedData(data) {
+async function generateIssuedData(data: any) {
   for (const holder_name in data.claims) {
     for (let claim of data.claims[holder_name]) {
       const issuer = claim["issuer"];

@@ -1,0 +1,7 @@
+[package]
+name = "vc_presentation_generation"
+type = "bin"
+authors = ["Tu Hoang"]
+compiler_version = ">=0.23.0"
+
+[dependencies]

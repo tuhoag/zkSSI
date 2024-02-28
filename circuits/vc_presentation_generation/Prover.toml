@@ -1,0 +1,33 @@
+[[credential.claims]]
+issuer = "issuer00"
+name = "birth_day "
+value = 20
+expired_date = 9
+
+[[credential.claims]]
+issuer = "issuer00"
+name = "birth_day "
+value = 8
+expired_date = 10
+
+[criteria]
+combinations = ["&", "|"]
+valid_date = 1
+
+[[criteria.conditions]]
+issuer = "issuer00"
+name = "birth_day "
+operator = "> "
+value = 18
+
+[[criteria.conditions]]
+issuer = "issuer01"
+name = "birth_day "
+operator = "> "
+value = 18
+
+[[criteria.conditions]]
+issuer = "issuer00"
+name = "birth_day "
+operator = "> "
+value = 19
