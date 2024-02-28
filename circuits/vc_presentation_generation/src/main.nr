@@ -1,18 +1,23 @@
 global MAX_CONDITIONS = 3;
 global MAX_CLAIMS = 2;
+global MAX_CREDENTIALS = 2;
 
 struct Condition {
-    name: str<10>,
+    name: str<11>,
     operator: str<2>,
     value: u8,
     issuer: str<8>,
 }
 
-struct Claim {
-    name: str<10>,
-    value: u8,
+struct Credential {
     issuer: str<8>,
+    claims: [Claim; MAX_CLAIMS],
     expired_date: u16,
+}
+
+struct Claim {
+    name: str<11>,
+    value: u8,
 }
 
 struct AccessControlCriteria {
@@ -22,7 +27,7 @@ struct AccessControlCriteria {
 }
 
 struct UnifiedCredential {
-    claims: [Claim; MAX_CLAIMS],
+    credentials: [Credential; MAX_CREDENTIALS],
 }
 
 fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredential) {
@@ -31,42 +36,49 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
 
     for i in 0..criteria.conditions.len() {
         current_check = false;
-        // println(f"previous check: {previous_check} - current check: {current_check}");
+        println(f"previous check: {previous_check} - current check: {current_check}");
 
-        // println(criteria.conditions[i]);
+        let condition = criteria.conditions[i];
+        println(f"condition: {condition}");
 
-        for j in 0..credential.claims.len() {
+        for j in 0..credential.credentials.len() {
             if (!current_check) {
-                // println(credential.claims[j]);
+                let subCredential = credential.credentials[j];
 
-                if (criteria.conditions[i].name == credential.claims[j].name) & (criteria.conditions[i].issuer == credential.claims[j].issuer) & (credential.claims[j].expired_date >= criteria.valid_date) {
-                    if criteria.conditions[i].operator == "= " {
-                        current_check = credential.claims[j].value == criteria.conditions[i].value;
-                    } else if criteria.conditions[i].operator == "!=" {
-                        current_check = credential.claims[j].value != criteria.conditions[i].value;
-                    } else {
-                        let claim_value = credential.claims[j].value as u8;
-                        let condition_value = criteria.conditions[i].value as u8;
+                if (condition.issuer == subCredential.issuer) & (criteria.valid_date <= subCredential.expired_date) {
+                    for k in 0..subCredential.claims.len() {
+                        let claim = subCredential.claims[k];
 
-                        // println(claim_value);
-                        // println(condition_value);
+                        if (condition.name == claim.name) {
+                            if condition.operator == "==" {
+                                current_check = claim.value == condition.value;
+                            } else if condition.operator == "!=" {
+                                current_check = claim.value != condition.value;
+                            } else {
+                                let claim_value = claim.value as u8;
+                                let condition_value = condition.value as u8;
 
-                        if criteria.conditions[i].operator == "> " {
-                            current_check = claim_value > condition_value;
-                        } else if criteria.conditions[i].operator == "< " {
-                            current_check = claim_value < condition_value;
-                        } else if criteria.conditions[i].operator == ">=" {
-                            current_check = claim_value >= condition_value;
-                        } else if criteria.conditions[i].operator == "<=" {
-                            current_check = claim_value <= condition_value;
-                        } else {
-                            assert(false, "Operator is not supported");
-                            current_check = false;
+                                println(claim_value);
+                                println(condition_value);
+
+                                if condition.operator == "> " {
+                                    current_check = claim_value > condition_value;
+                                } else if condition.operator == "< " {
+                                    current_check = claim_value < condition_value;
+                                } else if condition.operator == ">=" {
+                                    current_check = claim_value >= condition_value;
+                                } else if condition.operator == "<=" {
+                                    current_check = claim_value <= condition_value;
+                                } else {
+                                    assert(false, "Operator is not supported");
+                                    current_check = false;
+                                }
+                            }
                         }
-
-                        // println(current_check);
                     }
                 }
+
+                // println(credential.claims[j]);
             }
         }
 
