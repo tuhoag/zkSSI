@@ -1,22 +1,50 @@
-global MAX_CONDITIONS = 3;
-global MAX_CLAIMS = 2;
-global MAX_CREDENTIALS = 2;
+use dep::std::hash::poseidon;
+use dep::std::eddsa::eddsa_poseidon_verify;
+
+global MAX_CONDITIONS = 2;
+global MAX_CLAIMS = 1;
+global MAX_CREDENTIALS = 1;
+global ATTRIBUTE_NAME_LEN = 10;
+global ISSUER_NAME_LEN = 8;
+
+struct Point {
+    x: Field,
+    y: Field,
+}
+
+type PublicKey = Point;
+
+struct Signature {
+    s: Field,
+    r8: Point,
+}
 
 struct Condition {
-    name: str<11>,
+    name: str<ATTRIBUTE_NAME_LEN>,
     operator: str<2>,
     value: u8,
-    issuer: str<8>,
+    issuer: str<ISSUER_NAME_LEN>,
+}
+
+struct Issuer {
+    name: str<ISSUER_NAME_LEN>,
+    code: Field,
+    public_key: PublicKey,
 }
 
 struct Credential {
-    issuer: str<8>,
+    issuer: Issuer,
+    subject: str<ISSUER_NAME_LEN>,
+    subject_code: Field,
     claims: [Claim; MAX_CLAIMS],
     expired_date: u16,
+    hash: Field,
+    signature: Signature,
 }
 
 struct Claim {
-    name: str<11>,
+    name: str<ATTRIBUTE_NAME_LEN>,
+    code: Field,
     value: u8,
 }
 
@@ -45,7 +73,8 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
             if (!current_check) {
                 let subCredential = credential.credentials[j];
 
-                if (condition.issuer == subCredential.issuer) & (criteria.valid_date <= subCredential.expired_date) {
+                if (condition.issuer == subCredential.issuer.name)
+                    & (criteria.valid_date <= subCredential.expired_date) {
                     for k in 0..subCredential.claims.len() {
                         let claim = subCredential.claims[k];
 
@@ -77,7 +106,6 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
                         }
                     }
                 }
-
                 // println(credential.claims[j]);
             }
         }
@@ -85,7 +113,6 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
         let new_i: i8 = (i as i8) - (1 as i8);
         // println(new_i);
         if (new_i >= 0) {
-
             let operator = criteria.combinations[new_i];
 
             // println(new_i);
@@ -98,7 +125,6 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
                 assert(false, "Combination Operator is not supported");
                 current_check = false;
             }
-
             // println(operator);
             // println(current_check);
         }
@@ -110,9 +136,43 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
     assert(current_check);
 }
 
-fn main(criteria: AccessControlCriteria, credential: UnifiedCredential) {
+fn main(criteria: AccessControlCriteria, credential: UnifiedCredential) -> pub (Field, Field) {
     // check the criteria
-    check_conditions(criteria, credential);
+    // check_conditions(criteria, credential);
+
+    let first_credential = credential.credentials[0];
+
+    let mut claimHash = 0;
+
+    for i in 0..first_credential.claims.len() {
+        if (i == 0) {
+            claimHash = poseidon::bn254::hash_2([first_credential.claims[i].code, first_credential.claims[i].value as Field]);
+        } else {
+            claimHash = poseidon::bn254::hash_3([claimHash, first_credential.claims[i].code, first_credential.claims[i].value as Field]);
+        }
+    }
+
+    let calculated_hash = poseidon::bn254::hash_6(
+        [
+        first_credential.subject_code, first_credential.issuer.code, first_credential.issuer.public_key.x, first_credential.issuer.public_key.y, first_credential.expired_date as Field, claimHash
+    ]
+    );
+
+    println(f"calculated_hash: {calculated_hash}");
+    assert(calculated_hash == first_credential.hash);
+
+    assert(
+        eddsa_poseidon_verify(
+            first_credential.issuer.public_key.x,
+            first_credential.issuer.public_key.y,
+            first_credential.signature.s,
+            first_credential.signature.r8.x,
+            first_credential.signature.r8.y,
+            calculated_hash
+        )
+    );
+
+    (calculated_hash, credential.credentials[0].hash)
 }
 
 #[test]

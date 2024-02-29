@@ -1,45 +1,42 @@
 [[credential.credentials]]
-expired_date = 5
-issuer = "issuer00"
+expired_date = ""
 
 [[credential.credentials.claims]]
-name = "birth_day  "
-value = 19
+name = ""
+value = ""
 
-[[credential.credentials.claims]]
-name = "nationality"
-value = 84
+[credential.credentials.issuer]
+name = ""
 
-[[credential.credentials]]
-expired_date = 11
-issuer = "issuer01"
-
-[[credential.credentials.claims]]
-name = "birth_day  "
-value = 19
-
-[[credential.credentials.claims]]
-name = "birth_day  "
-value = 19
+[credential.credentials.issuer.public_key]
+x = ""
+y = ""
 
 [criteria]
-combinations = ["&", "|"]
-valid_date = 5
+combinations = ["", ""]
+valid_date = ""
 
 [[criteria.conditions]]
-issuer = "issuer00"
-name = "birth_day  "
-operator = "> "
-value = 18
+issuer = ""
+name = ""
+operator = ""
+value = ""
 
 [[criteria.conditions]]
-issuer = "issuer01"
-name = "birth_day  "
-operator = "> "
-value = 18
+issuer = ""
+name = ""
+operator = ""
+value = ""
 
 [[criteria.conditions]]
-issuer = "issuer00"
-name = "nationality"
-operator = "=="
-value = 84
+issuer = ""
+name = ""
+operator = ""
+value = ""
+
+[signature]
+s = ""
+
+[signature.r8]
+x = ""
+y = ""

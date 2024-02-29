@@ -21,8 +21,10 @@ import {
 } from "@zk-kit/eddsa-poseidon"
 import path from "path";
 // import { Blake512 } from "blake-hash/lib";
-import createBlakeHash from "blake-hash";
-
+// import createBlakeHash from "blake-hash";
+import blake from "@zk-kit/eddsa-poseidon/src/blake";
+import { checkMessage } from "@zk-kit/eddsa-poseidon/src/utils";
+import {blake2s256} from "@noir-lang/noir_js";
 
 async function generateRevokedData(data: any) {
   const hash = (childNodes: ChildNodes) => {
@@ -107,8 +109,13 @@ async function generateIssuedData(data: any) {
         publicKey = data.issuers[issuer]["keys"]["publicKey"];
       }
 
+      const hash = Uint8Array.from(claim);
+      console.log(claim);
+      console.log(hash);
+
       const signature = signMessage(privateKey, JSON.stringify(claim));
-      claim["hash"] = createBlakeHash("blake512").update(JSON.stringify(claim)).digest("hex");
+      // claim["hash"] = blake(JSON.stringify(claim));
+      // claim["hash"] = hash("blake512").update(JSON.stringify(claim)).digest("hex");
 
       claim["signature"] = signature;
 
@@ -120,7 +127,7 @@ async function generateIssuedData(data: any) {
       claim["expiredDate"] = expiredDate;
 
 
-      console.log(claim);
+      // console.log(claim);
     }
   }
 }

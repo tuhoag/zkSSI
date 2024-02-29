@@ -16,7 +16,7 @@ export class NoirProgram {
     this.options = options;
   }
 
-  public static async createProgram(circuitName: string, options: any) {
+  public static async createProgram(circuitName: string, options?: BackendOptions) {
     const program = new NoirProgram(circuitName, options);
 
     const myProjectPath = resolve(__dirname, "..", "circuits", circuitName);
