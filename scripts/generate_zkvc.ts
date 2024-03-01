@@ -300,7 +300,7 @@ async function main() {
     const credential = new UnifiedCredential([new Credential(
         new Issuer("issuer00", privateKey),
         "ken     ",
-        4,
+        5,
         [
             new Claim("birth_day ", 19)
         ],

@@ -105,8 +105,13 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
                             }
                         }
                     }
+
+                    if (current_check) {
+                        if (!is_hash_valid(subCredential)) {
+                            current_check = false;
+                        }
+                    }
                 }
-                // println(credential.claims[j]);
             }
         }
 
@@ -136,43 +141,40 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
     assert(current_check);
 }
 
-fn main(criteria: AccessControlCriteria, credential: UnifiedCredential) -> pub (Field, Field) {
-    // check the criteria
-    // check_conditions(criteria, credential);
-
-    let first_credential = credential.credentials[0];
-
+fn is_hash_valid(credential: Credential) -> bool {
     let mut claimHash = 0;
 
-    for i in 0..first_credential.claims.len() {
+    for i in 0..credential.claims.len() {
         if (i == 0) {
-            claimHash = poseidon::bn254::hash_2([first_credential.claims[i].code, first_credential.claims[i].value as Field]);
+            claimHash = poseidon::bn254::hash_2([credential.claims[i].code, credential.claims[i].value as Field]);
         } else {
-            claimHash = poseidon::bn254::hash_3([claimHash, first_credential.claims[i].code, first_credential.claims[i].value as Field]);
+            claimHash = poseidon::bn254::hash_3([claimHash, credential.claims[i].code, credential.claims[i].value as Field]);
         }
     }
 
     let calculated_hash = poseidon::bn254::hash_6(
         [
-        first_credential.subject_code, first_credential.issuer.code, first_credential.issuer.public_key.x, first_credential.issuer.public_key.y, first_credential.expired_date as Field, claimHash
+        credential.subject_code, credential.issuer.code, credential.issuer.public_key.x, credential.issuer.public_key.y, credential.expired_date as Field, claimHash
     ]
     );
 
-    println(f"calculated_hash: {calculated_hash}");
-    assert(calculated_hash == first_credential.hash);
+    // println(f"calculated_hash: {calculated_hash}");
+    // assert(calculated_hash == credential.hash);
 
-    assert(
-        eddsa_poseidon_verify(
-            first_credential.issuer.public_key.x,
-            first_credential.issuer.public_key.y,
-            first_credential.signature.s,
-            first_credential.signature.r8.x,
-            first_credential.signature.r8.y,
-            calculated_hash
-        )
-    );
+    eddsa_poseidon_verify(
+        credential.issuer.public_key.x,
+        credential.issuer.public_key.y,
+        credential.signature.s,
+        credential.signature.r8.x,
+        credential.signature.r8.y,
+        calculated_hash
+    )
+}
 
-    (calculated_hash, credential.credentials[0].hash)
+fn main(criteria: AccessControlCriteria, credential: UnifiedCredential) {
+    // check the criteria
+    check_conditions(criteria, credential);
+    // (calculated_hash, credential.credentials[0].hash)
 }
 
 #[test]
