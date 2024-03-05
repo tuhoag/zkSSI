@@ -13,3 +13,4 @@ node_modules
 /coverage
 /coverage.json
 /data/data.json
+.DS_Store

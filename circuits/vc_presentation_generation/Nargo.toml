@@ -5,3 +5,4 @@ authors = ["Tu Hoang"]
 compiler_version = ">=0.23.0"
 
 [dependencies]
+smt = { path="../libs/smtverifier_noir" }

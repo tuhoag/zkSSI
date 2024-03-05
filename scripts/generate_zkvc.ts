@@ -2,7 +2,7 @@ import fs from "fs";
 import { mulPointEscalar, r } from "@zk-kit/baby-jubjub";
 import { randomBytes } from "crypto";
 import { ethers } from "hardhat";
-import { ChildNodes, Node, SMT } from "@zk-kit/smt"
+import { ChildNodes, Node } from "@zk-kit/smt"
 import sha256 from "crypto-js/sha256"
 import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon5, poseidon6 } from "poseidon-lite"
 import { toBigInt } from "ethers";
@@ -22,19 +22,20 @@ import {
 } from "@zk-kit/eddsa-poseidon"
 import path from "path";
 import {
-    BigNumberish,
     bigNumberishToBigint,
     bigNumberishToBuffer,
     bufferToBigint,
     isBigNumberish,
     isStringifiedBigint
 } from "@zk-kit/utils"
+import { newMemEmptyTrie, SMT, SMTMemDb, BigNumberish  } from 'circomlibjs';
 
 import lodash from "lodash";
 
-import { NoirProgram } from "./utils";
+import { NoirProgram, NoirProgramOptions, getDefaultNoirProgramOptions } from "./utils";
 import { bigIntToHex } from "@nomicfoundation/ethereumjs-util";
-// import { any } from "hardhat/internal/core/params/argumentTypes";
+import exp from "constants";
+import { createSMT as createSparseMerkleTree } from "./circom_smt_utils";
 
 function convertNormalStringToBigInt(data: string) {
     const encoder = new TextEncoder();
@@ -44,12 +45,65 @@ function convertNormalStringToBigInt(data: string) {
     return bufferToBigint(Buffer.from(view));
 }
 
-function convertIntToHexString(data: number | string | bigint) {
-    return bigIntToHex(BigInt(data));
-}
 
 interface NoirSerializable {
     serializeNoir(): any;
+}
+
+const MAX_INPUT_SIBLINGS = 10;
+
+class MerkleTreeProof implements NoirSerializable {
+    root: bigint;
+    siblings: bigint[];
+    oldItem: bigint;
+    isOld0: number;
+    item: bigint;
+
+    constructor(root: bigint, siblings: bigint[], oldItem: bigint, isOld0: number, item: bigint) {
+        this.root = root;
+        this.siblings = siblings;
+        this.oldItem = oldItem;
+        this.isOld0 = isOld0;
+        this.item = item;
+    }
+
+    static async generateExclusionProof(tree: SMT, item: bigint) {
+        const key = tree.F.e(item);
+        const res = await tree.find(key);
+
+        let siblings = res.siblings;
+
+        for (let i=0; i<siblings.length; i++) {
+            siblings[i] = tree.F.toObject(siblings[i]);
+        }
+
+        assert(siblings.length <= MAX_INPUT_SIBLINGS, `Siblings has more than ${MAX_INPUT_SIBLINGS} items.`);
+
+
+        const root = tree.F.toObject(tree.root);
+        const oldItem = res.isOld0 ? 0 : tree.F.toObject(res.notFoundKey);
+
+        return new MerkleTreeProof(root, siblings, oldItem, res.isOld0, item);
+    }
+
+    serializeNoir() {
+        let allSiblings = Array<string>();
+
+        for (let i=0; i<this.siblings.length; i++) {
+            allSiblings[i] = bigIntToHex(this.siblings[i]);
+        }
+
+        while (allSiblings.length < MAX_INPUT_SIBLINGS) {
+            allSiblings.push(bigIntToHex(BigInt(0)));
+        }
+
+        return {
+            root: bigIntToHex(this.root),
+            siblings: allSiblings,
+            old_item: bigIntToHex(this.oldItem),
+            is_old_0: this.isOld0 ? bigIntToHex(BigInt(1)): bigIntToHex(BigInt(0)),
+        };
+    }
 }
 
 class Point implements NoirSerializable {
@@ -68,8 +122,6 @@ class Point implements NoirSerializable {
         }
     }
 }
-
-
 
 class Issuer implements NoirSerializable {
     name: string;
@@ -149,8 +201,9 @@ class Credential implements NoirSerializable {
     hashExpired: boolean;
     signature?: MySignature;
     signatureExpired: boolean;
+    nonRevocationProof?: MerkleTreeProof;
 
-    constructor(issuer: Issuer, subject: string, expiredDate: number, claims: Claim[], privateKey: string) {
+    constructor(issuer: Issuer, subject: string, expiredDate: number, claims: Claim[], privateKey: string, nonRevocationProof?: MerkleTreeProof) {
         this.issuer = issuer;
         this.subject = subject;
         // this.subject_code = convertNormalStringToBigInt(subject);
@@ -160,6 +213,7 @@ class Credential implements NoirSerializable {
         // this.signature = this.signCredential(privateKey);
         this.hashExpired = true;
         this.signatureExpired = true;
+        this.nonRevocationProof = nonRevocationProof;
     }
 
     serializeNoir() {
@@ -176,6 +230,7 @@ class Credential implements NoirSerializable {
             expired_date: bigIntToHex(BigInt(this.expiredDate)),
             hash: bigIntToHex(this.updateHash()),
             signature: this.updateSignature().serializeNoir(),
+            non_revocation_proof: this.nonRevocationProof!.serializeNoir(),
         }
     }
 
@@ -297,15 +352,33 @@ class Criteria implements NoirSerializable {
 async function main() {
     const privateKey = "secret";
 
-    const credential = new UnifiedCredential([new Credential(
-        new Issuer("issuer00", privateKey),
-        "ken     ",
-        5,
-        [
-            new Claim("birth_day ", 19)
-        ],
-        privateKey
-    )]);
+    let issuerRevocationTrees = new Map<string, SMT>();
+    issuerRevocationTrees.set("issuer00", await createSparseMerkleTree());
+    issuerRevocationTrees.set("issuer01", await createSparseMerkleTree());
+
+
+
+    const credentials = [
+        new Credential(
+            new Issuer("issuer00", privateKey),
+            "ken     ",
+            5,
+            [
+                new Claim("birth_day ", 19)
+            ],
+            privateKey),
+    ];
+
+    // await issuerRevocationTrees.get("issuer00")!.insert(credentials[0].updateHash(), credentials[0].updateHash());
+
+    for (let credential of credentials) {
+        const hash = credential.updateHash();
+        const proof = await MerkleTreeProof.generateExclusionProof(issuerRevocationTrees.get(credential.issuer.name)!, hash);
+        credential.nonRevocationProof = proof;
+    }
+
+    const unifiedCredential = new UnifiedCredential(credentials);
+
 
     const criteria = new Criteria(
         [
@@ -318,11 +391,12 @@ async function main() {
 
     const inputs = {
         criteria: criteria.serializeNoir(),
-        credential: credential.serializeNoir(),
+        credential: unifiedCredential.serializeNoir(),
     }
 
+    const options = getDefaultNoirProgramOptions();
 
-    const program = await NoirProgram.createProgram("vc_presentation_generation", { threads: 8 });
+    const program = await NoirProgram.createProgram("vc_presentation_generation", options);
     const proof = await program.prove(inputs);
     console.log(proof);
 

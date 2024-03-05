@@ -1,5 +1,6 @@
 use dep::std::hash::poseidon;
 use dep::std::eddsa::eddsa_poseidon_verify;
+use dep::smt;
 
 global MAX_CONDITIONS = 2;
 global MAX_CLAIMS = 1;
@@ -19,6 +20,19 @@ struct Signature {
     r8: Point,
 }
 
+impl Signature {
+    fn verify(self, public_key: PublicKey, hash: Field) -> bool {
+        eddsa_poseidon_verify(
+            public_key.x,
+            public_key.y,
+            self.s,
+            self.r8.x,
+            self.r8.y,
+            hash
+        )
+    }
+}
+
 struct Condition {
     name: str<ATTRIBUTE_NAME_LEN>,
     operator: str<2>,
@@ -32,6 +46,35 @@ struct Issuer {
     public_key: PublicKey,
 }
 
+struct Claim {
+    name: str<ATTRIBUTE_NAME_LEN>,
+    code: Field,
+    value: u8,
+}
+
+global MAX_INPUT_SIBLINGS = 10;
+global MAX_SIBLINGS = 160;
+
+struct ExclusionMerkleTreeProof {
+    siblings: [Field; MAX_INPUT_SIBLINGS],
+    root: Field,
+    old_item: Field,
+    is_old_0: Field,
+}
+
+impl ExclusionMerkleTreeProof {
+
+    fn verify(self, hash: Field)-> bool {
+        let mut totalSiblings : [Field; MAX_SIBLINGS] = [0; MAX_SIBLINGS];
+        for i in 0..self.siblings.len() {
+            totalSiblings[i] = self.siblings[i];
+        }
+
+        smt::verifier::verifyExtended(1, self.root, self.old_item, self.old_item, self.is_old_0, hash, 0, 1, totalSiblings)
+    }
+
+}
+
 struct Credential {
     issuer: Issuer,
     subject: str<ISSUER_NAME_LEN>,
@@ -40,13 +83,10 @@ struct Credential {
     expired_date: u16,
     hash: Field,
     signature: Signature,
+    non_revocation_proof: ExclusionMerkleTreeProof,
 }
 
-struct Claim {
-    name: str<ATTRIBUTE_NAME_LEN>,
-    code: Field,
-    value: u8,
-}
+
 
 struct AccessControlCriteria {
     conditions: [Condition; MAX_CONDITIONS],
@@ -73,8 +113,7 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
             if (!current_check) {
                 let subCredential = credential.credentials[j];
 
-                if (condition.issuer == subCredential.issuer.name)
-                    & (criteria.valid_date <= subCredential.expired_date) {
+                if (condition.issuer == subCredential.issuer.name) & (criteria.valid_date <= subCredential.expired_date) {
                     for k in 0..subCredential.claims.len() {
                         let claim = subCredential.claims[k];
 
@@ -107,7 +146,13 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
                     }
 
                     if (current_check) {
-                        if (!is_hash_valid(subCredential)) {
+                        let credential_hash = hash_credential(subCredential);
+
+                        if (!subCredential.signature.verify(subCredential.issuer.public_key, credential_hash)) {
+                            assert(false, "Signature is invalid");
+                            current_check = false;
+                        } else if (!subCredential.non_revocation_proof.verify(credential_hash)) {
+                            assert(false, "Non Revocation Proof is invalid");
                             current_check = false;
                         }
                     }
@@ -141,7 +186,7 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
     assert(current_check);
 }
 
-fn is_hash_valid(credential: Credential) -> bool {
+fn hash_credential(credential: Credential) -> Field {
     let mut claimHash = 0;
 
     for i in 0..credential.claims.len() {
@@ -152,15 +197,14 @@ fn is_hash_valid(credential: Credential) -> bool {
         }
     }
 
-    let calculated_hash = poseidon::bn254::hash_6(
+    poseidon::bn254::hash_6(
         [
         credential.subject_code, credential.issuer.code, credential.issuer.public_key.x, credential.issuer.public_key.y, credential.expired_date as Field, claimHash
     ]
-    );
+    )
+}
 
-    // println(f"calculated_hash: {calculated_hash}");
-    // assert(calculated_hash == credential.hash);
-
+fn check_signature(credential: Credential, calculated_hash: Field) -> bool {
     eddsa_poseidon_verify(
         credential.issuer.public_key.x,
         credential.issuer.public_key.y,
@@ -170,6 +214,7 @@ fn is_hash_valid(credential: Credential) -> bool {
         calculated_hash
     )
 }
+
 
 fn main(criteria: AccessControlCriteria, credential: UnifiedCredential) {
     // check the criteria

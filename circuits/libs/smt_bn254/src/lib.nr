@@ -2,7 +2,7 @@ use dep::std::option::Option;
 
 mod utils;
 
-global TREE_DEPTH: u32 = 256; 
+global TREE_DEPTH: u32 = 256;
 
 /**
  * Verifies a membership or a non-membership proof, ie it calculates the tree root
@@ -67,7 +67,7 @@ pub fn delete(entry: [Field; 2], old_root: Field, siblings: [Field; TREE_DEPTH])
     // proves membership of entry in the old root, then calculates and returns the new root
     let (new, old) = utils::calculate_two_roots(entry, siblings);
     assert(old == old_root);
-    new 
+    new
 }
 
 /**
@@ -120,11 +120,11 @@ big_tree_root: 46574...31272
 │   └── k: 20438...35547
 └── 0:
     ├── 1: 74148...2867
-    │   ├── 1: 89272...68433        || This leaf 
-    │   │   ├── 1                   || is missing 
+    │   ├── 1: 89272...68433        || This leaf
+    │   │   ├── 1                   || is missing
     │   │   ├── v: 85103...45170    || for the
     │   │   └── k: 84596...08785    || small_tree_root
-    │   └── 0: 18126...22196    
+    │   └── 0: 18126...22196
     │       ├── 1
     │       ├── v: 13761...25802
     │       └── k: 13924...78098
@@ -172,7 +172,7 @@ fn test_verify_non_membership_proof() {
     let value = 8510347201346963732943571140849185725417245763047403804445415726302354045170;
     let entry = [key, value];
     let matching_entry = [
-        Option::some(13924553918840562069536446401916499801909138643922241340476956069386532478098), 
+        Option::some(13924553918840562069536446401916499801909138643922241340476956069386532478098),
         Option::some(13761779908325789083343687318102407319424329800042729673292939195255502025802)
     ];
     let mut siblings: [Field; TREE_DEPTH] = [0; TREE_DEPTH];
