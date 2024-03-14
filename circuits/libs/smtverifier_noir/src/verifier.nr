@@ -1,9 +1,6 @@
 use crate::helpers;
 use dep::std;
 
-pub fn verifyExclusion<N>(root : Field, key : Field, value : Field, siblings : [Field; N]) {
-    verifyExtended(1, root, 0, 0, 0, key, value, 1, siblings);
-}
 
 pub fn verify<N>(root : Field, key : Field, value : Field, siblings : [Field; N]) {
     verifyExtended(1, root, 0, 0, 0, key, value, 0, siblings);

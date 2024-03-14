@@ -26,6 +26,19 @@ noirScope.task("compile-circuit", "Compile Noir circuit.")
   await compileCircuit(taskArgs, hre);
 });
 
+function snakeToCamel(snake: string): string {
+  let result = snake.split('').reduce((prev: string, cur: string) => {
+    if (prev.includes("_")) {
+      prev = prev.substring(0, prev.length - 1);
+      cur = cur.toUpperCase();
+    }
+    return prev + cur;
+  }, "");
+
+  return `${result.charAt(0).toUpperCase()}${result.slice(1)}`;
+  // return `${result.charAt[0].toUpperCase()}${result.slice(1)}`;
+}
+
 async function generateVerifierContract(taskArgs: any, hre: any) {
   const { circuit } = taskArgs;
 
@@ -46,8 +59,8 @@ async function generateVerifierContract(taskArgs: any, hre: any) {
   const oldPath = `${currentCircuitDir}/contract/${circuit}/plonk_vk.sol`;
   const contractsDir = path.join(__dirname, "../contracts");
 
-  const capitalisedCircuitName =
-    circuit.charAt(0).toUpperCase() + circuit.slice(1);
+
+  const capitalisedCircuitName = snakeToCamel(circuit);
 
   const newPath = `${contractsDir}/${capitalisedCircuitName}Verifier.sol`;
 

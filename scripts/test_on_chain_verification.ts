@@ -1,0 +1,61 @@
+import fs from "fs";
+import { mulPointEscalar, r } from "@zk-kit/baby-jubjub";
+import { randomBytes } from "crypto";
+import { ethers, ignition } from "hardhat";
+import { ChildNodes, Node } from "@zk-kit/smt"
+import sha256 from "crypto-js/sha256"
+import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon5, poseidon6 } from "poseidon-lite"
+import { toBigInt } from "ethers";
+import { assert, expect } from "chai";
+import { poseidonEncrypt, poseidonDecrypt, poseidonDecryptWithoutCheck } from "@zk-kit/poseidon-cipher"
+// import schnorr from "@noir-lang/barretenberg/crypto/schnorr";
+import { BarretenbergWasm } from '@noir-lang/barretenberg/dest/wasm';
+import { Schnorr } from '@noir-lang/barretenberg/dest/crypto/schnorr';
+import {
+    Signature,
+    derivePublicKey,
+    signMessage,
+    verifySignature,
+    deriveSecretScalar,
+    packPublicKey,
+    unpackPublicKey
+} from "@zk-kit/eddsa-poseidon"
+import path from "path";
+import {
+    bigNumberishToBigint,
+    bigNumberishToBuffer,
+    bufferToBigint,
+    isBigNumberish,
+    isStringifiedBigint
+} from "@zk-kit/utils"
+import { newMemEmptyTrie, SMT, SMTMemDb, BigNumberish  } from 'circomlibjs';
+
+import lodash from "lodash";
+import ZKVCModule from "../ignition/modules/zkvc";
+
+import { NoirProgram, NoirProgramOptions, getDefaultNoirProgramOptions } from "./utils";
+import { bigIntToHex } from "@nomicfoundation/ethereumjs-util";
+import exp from "constants";
+import { createSMT as createSparseMerkleTree } from "./circom_smt_utils";
+import { hexToBigInt } from "viem";
+
+async function main() {
+    const proof = {
+        proof: "0x0729a599bd3e13b75be84c6cbac48e291745705dbe9040573e4cec48ba5047d424d82711c89ecd38500be0229f25cc1bb3c11b67590096c0442fb382800e124827c10579cd075ee8c470d03d4a9d6ebdbbd98966e7d85db5d2cdcc0bfc1f894d1e3bd5754504a16a5c756bc40b334a4106b2a05b73fb43999f3a7533c735eebd1501531c5ed492b8ad4b4ed89841c1210216d37ce38fdacc77c28716c94a907319ab88af517bc60330ab83c865590a619d940130b844199b6df634a72e17a6ee1a13bb5d76e12ddedf5c707b7106c37226d4c291c9a40b189b097c07e4126f2910f407912a79a40d39a54883d395121f2fa6895fd785fcb2047cdc126e2267281b6452d0955261a9768d0e78279125c1f668b5a675fab87e8e9c57c58ba698171284e0531b89e5633b31fc575d80ea4529db2bf41c65b4ccffd610f02a0b91a21b2bd03b3d4051978b05979fd1436865ec1db67968680575af58e258eee0537e2c9fdefaa4b8757eba332b84c4b7555eaf54c690dcd5d9f44da34bd30c1a3b101892b2ca8c15e42122de319060fc4bfe6ea3d1487ad4b4a156b40948deb16c8926ab0c76de9dddcb00e0f76b195eb59bf262da9f6d5380dd40c2271dfe74644722b1fb852be44d61daae4ec74605920e5a8896790d0a916b407e47cf4a05ab0500cbd86d1a552e26d23ea33b32d7f8751ef15f473032a5506095a8f8eaecf0e717d54e1bb1f9bea96f25b88d4eb0ac865160d977dec9d7b27b42ffdd859af34b22f27979f8070a1ba5ca913015aa7763b0716f3d5ecde6e1e2eaf634c412bcb71c3f1cd7dddc186c879cddc29e2fe113851d2df9e3d86b71c2a48e3184f868ef0e792c74479307297d49f1e5cf019050f6612fa5b3daada0035efa62db8de1a00a1778eea60e71814337d00e3fc63e22d42f10ac7c1703a45523f6f7a1bb2e380c30a22afc6991589ddf2e1499db6f70187f8a8b4e39138629812de26a2ae41222b0ec6bf99b56a52fd38b3e2f7e4653c00c3e4dfdfaa0376f51642d5a6402f80b520df3f83b888a2ee591aece5beef88cfa0c7e59fe065db08ec09e6ebe6a9a0bb59f54adefcd0a33caad4da276e0e31368afe44d124e301dc685f0d4e6f81816eb16cd3057c396eacb37a7a20bfc21db57c2ea42f74dd61cb039f9b4cc90f911e1257db9ba2b625aa59901db3803c23c921d236e8daca10e6a9ca12624a0711542c86b8910c86e081ba8c6305039930c19ec463880abcd5687092d06332dbf05d6f9c88e9748ab1c9f7b28d12a1d26634084001d15b451a189fe9b2821cd032c6225ff29580dee6b11f08a943c1e8c7d8021fb481d7d89d829a7df6f3d0edb2c176bcef3923c87af546ed54580f32eb0416da821e648139098320ae2b8333125608f34f981d250e5527128aa7c78ea2fb38b68c9399ab4b7fa177523d7b4671f1c039491abb74ec4ed7ced44fedd15f225be4a7be3d6d5727169ceb488eea62b523a7fffc4316fecf6ae0913f6a9a9e76468ae67a325387e463ab2bcd43dfa0e0537a8dd914bdc38dbef7a7cfbd5ee8991092589b9927a3fd7a67a0e6e7b96029d6c57c5b5ec9aa3bd056347d5c23b82a2db1d02d189296b905ec24042cbcb1905e6163105ace40534062494974a949c48475d798f513985e16e8f83f24fff19a63dd0e7d8d5cf2e769f8b62b37a85b0a829112d925e27a60c94a4161dc6c11bd9ce956c9893e67e7b87a95a14c11c2c28224b009976f2c721ceca06dceb7e1bc31d6c7424d145242330d2b9d04614ed022e70fe25bb342e36552c1caced31023e786022b20afe6ed5a625835de06078e39168dcc04732a5ee5e16b3a0845f2eb9cf9b001dce38131588574dbf28c9eb09bd8f2f8a20ad126fa49e9049d11b115bd682b7f1e75e69ee5aec62e33860852e06c05fa7bc0b775d86bf7b5ec1900b6dc6b2f5dbfbf39069985992a9ab30a9cf03b928626c6273ad0d6cb79c069b2597d088eb2bc178354d729cbe1be28875fffa4154033d901a308bf0350d564d129fa196622e149dde4d5c60974a0dc50abc5a0df43733d739d8aaeea4bc67c30a7cdd64ec484ee827e586194e2a3bf60ba05441a57851e13cd3a95984dc4b412128e0a5cd9fab38d8b6394ee22e13de73c96b0c109b64bed75c542858376e7717d36f64878bb76f6f870d0e86b80c3d486f72f1b58f01bf61405388ff8b8d4419cd8965254743c4b4206ca5b40cc36301fbfff59e0b3203215e5cfd02ee9f4200700c574ec4edc8b0bf03dd5403df8c1cbb0db86c00d9ae9c7a2782b52f4852118d31dc6b8c4127ab41090d1c8b5de66699b1e90a7db6fc6f481153b2a8d55b0a2ce390808f8a294926d2bdd92d517c92c3c7360754a5fa5065b725d98063e70d6105c8b5441dd01e61e818eba544b3b643b3277a3e3113cd603c5e558472ee15b300a64366db713a5f3f5addb06d18afba9d3429e88f804dbd233ef6e62e662e3f40338b1bf9fe71aaf0332c2f09de127f577de9e16b03a7823c57e0f6d5e11e605d8cfb5d6cff2542528fc405c0fdf634fd6c66d6962a1f12d7996f03b5661bfabdb09bbc960cad741b8f259a59a532530014973411df6be03027d132d92c0938490135fa8a744e8642cce850663494ac4c7dcecd4b16a632774d55477d99265a18675d0a12c56f99bf2cda0e6858bf78a8e113e716b9d177ff24fd61209e07f455ee552ffa1785a5aa62c650478d0259c437e82a908ff8fd0aef972cf40f132bec497ee7b4aeb49ab0ae82e0ecf86573583f0f55fbdc461616c5ffb5d6062cd7b26dffec6f3a96711c8631a97241d094ca01b80da3adf7f518067b9120ce265724d5277f211a9d07b047e76c01709edb96d4aeaaa074bc6ed8aaa852c6251680e046ca21d9edbe50b614e8b947b20c4b5406da0c482460251fc77766d7a1154c8e8aef0a58d42dcbb64e0646f79a57cec00b21737aacf1df4a8e54ff076e2577af40bdc513ef291d3c0a235295a5f25f8667e55939c40b779094709ad72e",
+        publicInputs: [
+            "0x0000000000000000000000000000000000000000000000000000000000000000"
+        ]
+    };
+
+    const { vcpVerifierContract } = await ignition.deploy(ZKVCModule);
+    const onChainVerification = await vcpVerifierContract.verify(proof.proof, proof.publicInputs);
+    expect(onChainVerification).to.be.true;
+    console.log(`on-chain verification: ${onChainVerification}`);
+}
+
+// We recommend this pattern to be able to use async/await everywhere
+// and properly handle errors.
+main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});

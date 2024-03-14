@@ -1,7 +1,7 @@
 import fs from "fs";
 import { mulPointEscalar, r } from "@zk-kit/baby-jubjub";
 import { randomBytes } from "crypto";
-import { ethers } from "hardhat";
+import { ethers, ignition } from "hardhat";
 import { ChildNodes, Node } from "@zk-kit/smt"
 import sha256 from "crypto-js/sha256"
 import { poseidon1, poseidon2, poseidon3, poseidon4, poseidon5, poseidon6 } from "poseidon-lite"
@@ -31,11 +31,13 @@ import {
 import { newMemEmptyTrie, SMT, SMTMemDb, BigNumberish  } from 'circomlibjs';
 
 import lodash from "lodash";
+import ZKVCModule from "../ignition/modules/zkvc";
 
 import { NoirProgram, NoirProgramOptions, getDefaultNoirProgramOptions } from "./utils";
 import { bigIntToHex } from "@nomicfoundation/ethereumjs-util";
 import exp from "constants";
 import { createSMT as createSparseMerkleTree } from "./circom_smt_utils";
+import { hexToBigInt } from "viem";
 
 function convertNormalStringToBigInt(data: string) {
     const encoder = new TextEncoder();
@@ -392,17 +394,25 @@ async function main() {
     const inputs = {
         criteria: criteria.serializeNoir(),
         credential: unifiedCredential.serializeNoir(),
+        temp: bigIntToHex(BigInt(0)),
     }
 
     const options = getDefaultNoirProgramOptions();
 
-    const program = await NoirProgram.createProgram("vc_presentation_generation", options);
+    const program = await NoirProgram.createProgram("vcp_generation", options);
     const proof = await program.prove(inputs);
     console.log(proof);
+    // console.log(bigIntToHex(proof.proof));
 
-    // const verification = await program.verify(proof);
-    // console.log(verification);
+    const verification = await program.verify(proof);
+    console.log(`off-chain verification: ${verification}`);
 
+    const { vcpVerifierContract } = await ignition.deploy(ZKVCModule);
+    // const hexProofData = proof.toHexProofData();
+    // console.log(hexProofData);
+    const onChainVerification = await vcpVerifierContract.verify(proof.proof, proof.publicInputs);
+    expect(onChainVerification).to.be.true;
+    console.log(`on-chain verification: ${onChainVerification}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

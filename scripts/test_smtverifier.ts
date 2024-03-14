@@ -153,8 +153,8 @@ async function checkExclusion(tree: SMT, _key: bigint) {
 
     const options: NoirProgramOptions = {
         threads: 8,
-        compiled: false,
-        isJSProving: false,
+        compiled: true,
+        isJSProving: true,
         proverName: "Prover",
         verifierName: "Verifier",
     }

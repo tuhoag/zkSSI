@@ -6,7 +6,11 @@ import { compile, createFileManager } from "@noir-lang/noir_wasm";
 import { ProgramArtifact, ProgramCompilationArtifacts } from "@noir-lang/noir_wasm/dist/types/src/types/noir_artifact";
 import { resolve } from "path";
 import fs from "fs";
-import { bufferToBigint } from "@zk-kit/utils";
+import { bufferToBigint, bigNumberishToBigint, bigintToBuffer, bigintToHexadecimal } from "@zk-kit/utils";
+import { Proof } from "viem/_types/types/proof";
+import { hexToBigInt, hexToBytes } from "viem";
+import { bigIntToHex, bytesToHex } from "@nomicfoundation/ethereumjs-util";
+import { hexlify } from "ethers";
 
 const TREE_DEPTH = 256;
 
@@ -14,10 +18,54 @@ function getCircuitDirPath(circuitName: string): string {
   return resolve(__dirname, "..", "circuits", circuitName);
 }
 
+class MyProofData {
+  publicInputs: string[];
+  proof: string;
+
+  constructor(proof: string, publicInputs: string[]) {
+    this.proof = proof;
+    this.publicInputs = publicInputs;
+  }
+
+  static fromNoirProofData(proofData: ProofData): MyProofData {
+    let publicInputs = Array<string>();
+
+    for (const item of proofData.publicInputs) {
+      publicInputs.push(item);
+    }
+
+    return new MyProofData(
+      bytesToHex(proofData.proof as Buffer),
+        publicInputs
+    );
+  }
+
+  static fromFiles(proofFilePath: string, publicInputFilePath: string): MyProofData {
+    const proof = `0x${fs.readFileSync(proofFilePath, "utf8")}`;
+
+    let publicInputValues = Array<string>();
+    const publicInputs = toml.parse(fs.readFileSync(publicInputFilePath).toString("utf8"));
+    for (const name in publicInputs) {
+      publicInputValues.push(publicInputs[name] as string);
+    }
+
+    return new MyProofData(proof, publicInputValues);
+  }
+
+  toNoirProofData(): ProofData {
+
+
+    return {
+      proof: bigintToBuffer(BigInt(this.proof)),
+      publicInputs: this.publicInputs
+    };
+  }
+}
 export type NoirProgramOptions = {
   threads?: number;
   compiled?: boolean;
   isJSProving?: boolean;
+  isJSVerying?: boolean;
   proverName?: string;
   verifierName?: string;
 }
@@ -74,22 +122,51 @@ export class NoirProgram {
     return proof;
   }
 
-  public async prove(inputData: any, options?: NoirProgramOptions): Promise<ProofData> {
+  public async prove(inputData: any, options?: NoirProgramOptions): Promise<MyProofData> {
     if (options === undefined) {
       options = this.options;
     }
 
     if (options!.isJSProving) {
-      return this.proveNoirJS(inputData);
+      return MyProofData.fromNoirProofData(await this.proveNoirJS(inputData));
     } else {
       return this.proveCLI(inputData, options);
     }
   }
 
-  public async verify(proofData: ProofData): Promise<boolean> {
-    const verification = await this.noir!.verifyFinalProof(proofData);
-
+  async verifyNoirJS(proofData: MyProofData): Promise<boolean> {
+    const verification = await this.noir!.verifyFinalProof(proofData.toNoirProofData());
     return verification;
+  }
+
+  async verifyCLI(proofData: MyProofData, options?: NoirProgramOptions): Promise<boolean> {
+    try {
+      const circuitDirPath = getCircuitDirPath(this.name);
+      const command = `nargo verify --verifier-name ${options?.verifierName!}`;
+      console.log(`executing ${command}`);
+
+      console.time("verifying");
+      childProcess.execSync(command, {
+        cwd: circuitDirPath,
+      })
+      console.timeEnd("verifying");
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  public async verify(proofData: MyProofData, options?: NoirProgramOptions): Promise<boolean> {
+    if (options === undefined) {
+      options = this.options;
+    }
+
+    if (options!.isJSProving) {
+      return this.verifyNoirJS(proofData);
+    } else {
+      return this.verifyCLI(proofData, options);
+    }
   }
 
   public async generateInputs(inputData: any, options?: NoirProgramOptions) {
@@ -98,7 +175,7 @@ export class NoirProgram {
     console.log(`Generated input at ${inputPath}`);
   }
 
-  public async proveCLI(inputData: any, options?: NoirProgramOptions): Promise<ProofData> {
+  public async proveCLI(inputData: any, options?: NoirProgramOptions): Promise<MyProofData> {
     await this.generateInputs(inputData, options);
     const circuitDirPath = getCircuitDirPath(this.name);
     const command = `nargo prove --prover-name ${options?.proverName!}`;
@@ -112,18 +189,11 @@ export class NoirProgram {
     console.timeEnd("proving");
 
     // read the circuit proof
-    const proof = fs.readFileSync(resolve(circuitDirPath, "proofs", `${this.name}.proof`));
+    const proofFilePath = resolve(circuitDirPath, "proofs", `${this.name}.proof`);
+    const publicInputFilePath = resolve(circuitDirPath, `${options?.verifierName}.toml`);
 
-    let publicInputValues = Array<string>();
-    const publicInputs = toml.parse(fs.readFileSync(resolve(circuitDirPath, `${options?.verifierName}.toml`)).toString("utf8"));
-    for (const name in publicInputs) {
-      publicInputValues.push(publicInputs[name] as string);
-    }
     return new Promise((resolve, reject) => {
-      resolve({
-        publicInputs: publicInputValues,
-        proof: proof
-      })
+      resolve(MyProofData.fromFiles(proofFilePath, publicInputFilePath));
     });
   }
 }
