@@ -52,17 +52,29 @@ interface NoirSerializable {
     serializeNoir(): any;
 }
 
+const MAX_CONDITIONS = 1;
+const MAX_ISSUERS = 1;
+const MAX_CREDENTIALS = 1;
+const MAX_CLAIMS = 1;
+
+const MAX_SIBLINGS = 128;
 const MAX_INPUT_SIBLINGS = 10;
 
+function paddingArray(array: Array<string>, num: number, value: any) {
+    while (array.length < num) {
+        array.push(value);
+    }
+}
+
 class MerkleTreeProof implements NoirSerializable {
-    root: bigint;
+    // root: bigint;
     siblings: bigint[];
     oldItem: bigint;
     isOld0: number;
     item: bigint;
 
-    constructor(root: bigint, siblings: bigint[], oldItem: bigint, isOld0: number, item: bigint) {
-        this.root = root;
+    constructor(siblings: bigint[], oldItem: bigint, isOld0: number, item: bigint) {
+        // this.root = root;
         this.siblings = siblings;
         this.oldItem = oldItem;
         this.isOld0 = isOld0;
@@ -82,10 +94,10 @@ class MerkleTreeProof implements NoirSerializable {
         assert(siblings.length <= MAX_INPUT_SIBLINGS, `Siblings has more than ${MAX_INPUT_SIBLINGS} items.`);
 
 
-        const root = tree.F.toObject(tree.root);
+        // const root = tree.F.toObject(tree.root);
         const oldItem = res.isOld0 ? 0 : tree.F.toObject(res.notFoundKey);
 
-        return new MerkleTreeProof(root, siblings, oldItem, res.isOld0, item);
+        return new MerkleTreeProof(siblings, oldItem, res.isOld0, item);
     }
 
     serializeNoir() {
@@ -95,12 +107,13 @@ class MerkleTreeProof implements NoirSerializable {
             allSiblings[i] = bigIntToHex(this.siblings[i]);
         }
 
-        while (allSiblings.length < MAX_INPUT_SIBLINGS) {
-            allSiblings.push(bigIntToHex(BigInt(0)));
-        }
+        paddingArray(allSiblings, MAX_INPUT_SIBLINGS, bigIntToHex(BigInt(0)));
+        // while (allSiblings.length < MAX_INPUT_SIBLINGS) {
+        //     allSiblings.push(bigIntToHex(BigInt(0)));
+        // }
 
         return {
-            root: bigIntToHex(this.root),
+            // root: bigIntToHex(this.root),
             siblings: allSiblings,
             old_item: bigIntToHex(this.oldItem),
             is_old_0: this.isOld0 ? bigIntToHex(BigInt(1)): bigIntToHex(BigInt(0)),
@@ -140,8 +153,8 @@ class Issuer implements NoirSerializable {
 
     serializeNoir() {
         return {
-            name: this.name,
-            code: bigIntToHex(convertNormalStringToBigInt(this.name)),
+            // name: this.name,
+            issuer_code: bigIntToHex(convertNormalStringToBigInt(this.name)),
             public_key: this.publicKey.serializeNoir(),
         }
     }
@@ -158,7 +171,7 @@ class Claim implements NoirSerializable {
 
     serializeNoir() {
         return {
-            name: this.name,
+            // name: this.name,
             code: this.getCode(),
             value: bigIntToHex(BigInt(this.value)),
         };
@@ -226,11 +239,11 @@ class Credential implements NoirSerializable {
 
         return {
             issuer: this.issuer.serializeNoir(),
-            subject: this.subject,
+            // subject: this.subject,
             subject_code: bigIntToHex(convertNormalStringToBigInt(this.subject)),
             claims: serializedClaims,
             expired_date: bigIntToHex(BigInt(this.expiredDate)),
-            hash: bigIntToHex(this.updateHash()),
+            // hash: bigIntToHex(this.updateHash()),
             signature: this.updateSignature().serializeNoir(),
             non_revocation_proof: this.nonRevocationProof!.serializeNoir(),
         }
@@ -238,16 +251,16 @@ class Credential implements NoirSerializable {
 
     public updateHash(): bigint {
         if (this.hashExpired) {
-            let claimBigInt;
+            let claimHash;
             // const serializedCredential = this.serializeNoir();
 
             for (let i = 0; i < this.claims.length; i++) {
                 const serializedClaim = this.claims[i];
 
                 if (i == 0) {
-                    claimBigInt = poseidon2([serializedClaim.getCode(), serializedClaim.value]);
+                    claimHash = poseidon2([serializedClaim.getCode(), serializedClaim.value]);
                 } else {
-                    claimBigInt = poseidon3([claimBigInt!, serializedClaim.getCode(), serializedClaim.value])
+                    claimHash = poseidon3([claimHash!, serializedClaim.getCode(), serializedClaim.value])
                 }
             }
 
@@ -256,7 +269,7 @@ class Credential implements NoirSerializable {
                 bigIntToHex(convertNormalStringToBigInt(this.issuer.name)), this.issuer.publicKey.x,
                 this.issuer.publicKey.y,
                 this.expiredDate,
-                claimBigInt!
+                claimHash!
             ]);
 
             this.hash = credentialHash;
@@ -293,59 +306,163 @@ class UnifiedCredential implements NoirSerializable {
 
     serializeNoir() {
         let serializedCredentials = new Array();
+        let issuers = new Array();
+        let issuerMap = new Map<string, number>();
+
         for (const credential of this.credentials) {
-            serializedCredentials.push(credential.serializeNoir());
+            const {issuer, subject_code, claims, expired_date, signature, non_revocation_proof } = credential.serializeNoir();
+
+            let issuerIndex = issuerMap.get(issuer.issuer_code);
+
+            if (issuerIndex === undefined) {
+                issuerIndex = issuers.length
+                issuerMap.set(issuer.issuer_code, issuerIndex);
+                issuers.push(issuer);
+            }
+
+            serializedCredentials.push({
+                subject_code, claims, expired_date, signature, non_revocation_proof, issuer_index: bigIntToHex(BigInt(issuerIndex))
+            });
         }
 
+        // issuers (name, public_key)
+        // credentials
+
         return {
-            credentials: serializedCredentials
+            credentials: serializedCredentials,
+            issuers
         }
     }
 }
 
 class Condition implements NoirSerializable {
-    name: string;
+    attrName: string;
     operator: string;
     value: bigint;
-    issuer: string;
+    issuers: string[];
 
-    constructor(name: string, operator: string, value: number, issuer: string) {
-        this.name = name;
+    constructor(attrName: string, operator: string, value: number, issuers: string[]) {
+        this.attrName = attrName;
         this.operator = operator;
         this.value = BigInt(value);
-        this.issuer = issuer;
+        this.issuers = issuers;
+    }
+
+    hash(): bigint {
+        let issuersHash: bigint;
+
+        for (let i = 0; i < this.issuers.length; i++) {
+            const currentHash = convertNormalStringToBigInt(this.issuers[i]);
+
+            if (i == 0) {
+                issuersHash = currentHash;
+            } else {
+                issuersHash = poseidon2([issuersHash!, currentHash]);
+            }
+        }
+
+        return poseidon4([convertNormalStringToBigInt(this.attrName), convertNormalStringToBigInt(this.operator), this.value, issuersHash!]);
     }
 
     serializeNoir() {
+        let issuerCodes = Array<string>();
+
+        for (const issuer of this.issuers) {
+            issuerCodes.push(bigIntToHex(convertNormalStringToBigInt(issuer)));
+        }
+
         return {
-            name: this.name,
+            // name: this.name,
+            attr_code: bigIntToHex(convertNormalStringToBigInt(this.attrName)),
             operator: this.operator,
             value: bigIntToHex(this.value),
-            issuer: this.issuer,
+            issuer_codes: issuerCodes,
         };
     }
 }
-class Criteria implements NoirSerializable {
-    conditions: Array<Condition>;
-    combinations: Array<string>;
-    validDate: number;
 
-    constructor(conditions: Condition[], combinations: string[], validDate: number) {
-        this.combinations = combinations;
-        this.conditions = conditions;
-        this.validDate = validDate;
+type ConditionNode = {
+    value: Condition | string;
+    left?: ConditionNode;
+    right?: ConditionNode;
+
+    // constructor(value: Condition | string, left?: ConditionNode, right?: ConditionNode) {
+    //     this.value = value;
+    //     this.left = left;
+    //     this.right = right;
+    // }
+}
+
+
+// const conditions = new ConditionNode(
+//     "&",
+//     new ConditionNode(
+//         "|",
+//         new ConditionNode(
+//             new Condition("birth_day", "+ ", 10, "issuer00")
+//         ),
+//         new ConditionNode(
+//             new Condition("birth_day", "+ ", 10, "issuer00")
+//         )
+//     ),
+//     new ConditionNode(new Condition("birth_day", "+ ", 10, "issuer00")),
+// )
+
+class Criteria implements NoirSerializable {
+    root: ConditionNode;
+
+    constructor(root: ConditionNode) {
+        this.root = root;
     }
 
     serializeNoir() {
-        let serializedConditions = new Array();
-        for (const condition of this.conditions) {
-            serializedConditions.push(condition.serializeNoir());
+        let serializedConditions: any[] = [];
+        let serializedPredicates: any[] = [];
+
+        let currentNodes = [this.root];
+        let addedNodesHash = new Map<bigint, number>();
+
+        while (currentNodes.length > 0) {
+            const currentNode = currentNodes.shift();
+
+            // console.log(currentNode);
+            // console.log(typeof currentNode!.value === "string");
+            if (typeof currentNode!.value === "string") {
+                let value = -1;
+
+                if (currentNode?.value == "&") {
+                    value = 0;
+                } else if (currentNode?.value == "|") {
+                    value = 1;
+                } else {
+                    throw new Error(`Operator ${currentNode?.value} is unsupported`);
+                }
+
+                serializedPredicates.push(bigIntToHex(BigInt(value)));
+
+                currentNodes.push(currentNode!.left!);
+                currentNodes.push(currentNode!.right!);
+            } else {
+                // console.log(currentNode);
+                const hash = currentNode!.value.hash();
+
+                let addedConditionId = addedNodesHash.get(hash);
+
+                if (addedConditionId === undefined) {
+                    addedConditionId = serializedConditions.length;
+
+                    serializedConditions.push((currentNode!.value as Condition).serializeNoir());
+
+                    addedNodesHash.set(hash, addedConditionId);
+                }
+
+                serializedPredicates.push(bigIntToHex(BigInt(addedConditionId + 2)));
+            }
         }
 
         return {
             conditions: serializedConditions,
-            combinations: this.combinations,
-            valid_date: bigIntToHex(BigInt(this.validDate)),
+            predicates: serializedPredicates,
         };
     }
 }
@@ -358,44 +475,64 @@ async function main() {
     issuerRevocationTrees.set("issuer00", await createSparseMerkleTree());
     issuerRevocationTrees.set("issuer01", await createSparseMerkleTree());
 
-
-
     const credentials = [
         new Credential(
             new Issuer("issuer00", privateKey),
             "ken     ",
             5,
             [
-                new Claim("birth_day ", 19)
+                new Claim("birth_day", 19)
             ],
             privateKey),
     ];
 
-    // await issuerRevocationTrees.get("issuer00")!.insert(credentials[0].updateHash(), credentials[0].updateHash());
-
+    let roots = [];
     for (let credential of credentials) {
+        const nonRevocationTree = issuerRevocationTrees.get(credential.issuer.name);
+
         const hash = credential.updateHash();
-        const proof = await MerkleTreeProof.generateExclusionProof(issuerRevocationTrees.get(credential.issuer.name)!, hash);
+        const proof = await MerkleTreeProof.generateExclusionProof(nonRevocationTree!, hash);
         credential.nonRevocationProof = proof;
+        const root = nonRevocationTree!.F.toObject(nonRevocationTree!.root);
+        roots.push(bigIntToHex(root));
     }
 
     const unifiedCredential = new UnifiedCredential(credentials);
 
+    const singleCondition: ConditionNode = {
+        value: new Condition("birth_day", "> ", 10, ["issuer00"])
+    };
+    // const conditions: ConditionNode = {
+    //     value: "&",
+    //     left: {
+    //         value: "|",
+    //         left: {
+    //             value: new Condition("birth_day", "> ", 10, ["issuer00"])
+    //         },
+    //         right: {
+    //             value: new Condition("birth_day", "> ", 10, ["issuer00"])
+    //         },
+    //     },
+    //     right: {
+    //         value: new Condition("birth_day", "> ", 10, ["issuer00"])
+    //     }
+    // };
 
     const criteria = new Criteria(
-        [
-            new Condition("birth_day ", "> ", 18, "issuer00"),
-            new Condition("birth_day ", "> ", 18, "issuer00"),
-        ],
-        [ "&" ],
-        5
+        singleCondition
     );
+
+    const {credentials: serializedCredentials, issuers} = unifiedCredential.serializeNoir();
 
     const inputs = {
         criteria: criteria.serializeNoir(),
-        credential: unifiedCredential.serializeNoir(),
-        temp: bigIntToHex(BigInt(0)),
+        credentials: serializedCredentials,
+        public_keys: issuers,
+        proving_time: bigIntToHex(BigInt(5)),
+        revocation_roots: roots,
     }
+
+    console.dir(inputs, { depth: null });
 
     const options = getDefaultNoirProgramOptions();
 
@@ -407,12 +544,12 @@ async function main() {
     const verification = await program.verify(proof);
     console.log(`off-chain verification: ${verification}`);
 
-    const { vcpVerifierContract } = await ignition.deploy(ZKVCModule);
-    // const hexProofData = proof.toHexProofData();
-    // console.log(hexProofData);
-    const onChainVerification = await vcpVerifierContract.verify(proof.proof, proof.publicInputs);
-    expect(onChainVerification).to.be.true;
-    console.log(`on-chain verification: ${onChainVerification}`);
+    // const { vcpVerifierContract } = await ignition.deploy(ZKVCModule);
+    // // const hexProofData = proof.toHexProofData();
+    // // console.log(hexProofData);
+    // const onChainVerification = await vcpVerifierContract.verify(proof.proof, proof.publicInputs);
+    // expect(onChainVerification).to.be.true;
+    // console.log(`on-chain verification: ${onChainVerification}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

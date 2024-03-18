@@ -1,123 +1,28 @@
 use dep::std::hash::poseidon;
 use dep::std::eddsa::eddsa_poseidon_verify;
 use dep::smt;
+use dep::zkvc::{AccessControlCriteria, UnifiedCredential, Condition, Credential, Issuer, MAX_CREDENTIALS, MAX_CONDITIONS};
 
-global MAX_CONDITIONS = 2;
-global MAX_CLAIMS = 1;
-global MAX_CREDENTIALS = 1;
-global ATTRIBUTE_NAME_LEN = 10;
-global ISSUER_NAME_LEN = 8;
+fn validate_conditions(conditions: [Condition; MAX_CONDITIONS], credentials: [Credential; MAX_CREDENTIALS], public_keys: [Issuer; MAX_CREDENTIALS], proving_time: u16, revocation_roots: [Field; MAX_CREDENTIALS]) -> [bool; MAX_CONDITIONS] {
+    let mut condition_validations = [false; MAX_CONDITIONS];
 
-struct Point {
-    x: Field,
-    y: Field,
-}
+    for i in 0..conditions.len() {
+        let mut current_check = false;
+        // println(f"previous check: {previous_check} - current check: {current_check}");
 
-type PublicKey = Point;
-
-struct Signature {
-    s: Field,
-    r8: Point,
-}
-
-impl Signature {
-    fn verify(self, public_key: PublicKey, hash: Field) -> bool {
-        eddsa_poseidon_verify(
-            public_key.x,
-            public_key.y,
-            self.s,
-            self.r8.x,
-            self.r8.y,
-            hash
-        )
-    }
-}
-
-struct Condition {
-    name: str<ATTRIBUTE_NAME_LEN>,
-    operator: str<2>,
-    value: u8,
-    issuer: str<ISSUER_NAME_LEN>,
-}
-
-struct Issuer {
-    name: str<ISSUER_NAME_LEN>,
-    code: Field,
-    public_key: PublicKey,
-}
-
-struct Claim {
-    name: str<ATTRIBUTE_NAME_LEN>,
-    code: Field,
-    value: u8,
-}
-
-global MAX_INPUT_SIBLINGS = 10;
-global MAX_SIBLINGS = 160;
-
-struct ExclusionMerkleTreeProof {
-    siblings: [Field; MAX_INPUT_SIBLINGS],
-    root: Field,
-    old_item: Field,
-    is_old_0: Field,
-}
-
-impl ExclusionMerkleTreeProof {
-
-    fn verify(self, hash: Field)-> bool {
-        let mut totalSiblings : [Field; MAX_SIBLINGS] = [0; MAX_SIBLINGS];
-        for i in 0..self.siblings.len() {
-            totalSiblings[i] = self.siblings[i];
-        }
-
-        smt::verifier::verifyExtended(1, self.root, self.old_item, self.old_item, self.is_old_0, hash, 0, 1, totalSiblings)
-    }
-
-}
-
-struct Credential {
-    issuer: Issuer,
-    subject: str<ISSUER_NAME_LEN>,
-    subject_code: Field,
-    claims: [Claim; MAX_CLAIMS],
-    expired_date: u16,
-    hash: Field,
-    signature: Signature,
-    non_revocation_proof: ExclusionMerkleTreeProof,
-}
-
-
-
-struct AccessControlCriteria {
-    conditions: [Condition; MAX_CONDITIONS],
-    combinations: [str<1>; (MAX_CONDITIONS - 1)],
-    valid_date: u16,
-}
-
-struct UnifiedCredential {
-    credentials: [Credential; MAX_CREDENTIALS],
-}
-
-fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredential) {
-    let mut previous_check = false;
-    let mut current_check = false;
-
-    for i in 0..criteria.conditions.len() {
-        current_check = false;
-        println(f"previous check: {previous_check} - current check: {current_check}");
-
-        let condition = criteria.conditions[i];
+        let condition = conditions[i];
         println(f"condition: {condition}");
 
-        for j in 0..credential.credentials.len() {
+        for vcIndex in 0..credentials.len() {
             if (!current_check) {
-                let subCredential = credential.credentials[j];
+                let current_credential = credentials[vcIndex];
+                let current_issuer = public_keys[current_credential.issuer_index];
 
-                if (condition.issuer == subCredential.issuer.name) & (criteria.valid_date <= subCredential.expired_date) {
-                    for k in 0..subCredential.claims.len() {
-                        let claim = subCredential.claims[k];
+                if (condition.issuer_codes.any(|issuer_code| issuer_code == current_issuer.issuer_code)) & (proving_time <= current_credential.expired_date) {
+                    for k in 0..current_credential.claims.len() {
+                        let claim = current_credential.claims[k];
 
-                        if (condition.name == claim.name) {
+                        if (condition.attr_code == claim.code) {
                             if condition.operator == "==" {
                                 current_check = claim.value == condition.value;
                             } else if condition.operator == "!=" {
@@ -146,12 +51,12 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
                     }
 
                     if (current_check) {
-                        let credential_hash = hash_credential(subCredential);
+                        let credential_hash = current_credential.calculate_hash(current_issuer);
 
-                        if (!subCredential.signature.verify(subCredential.issuer.public_key, credential_hash)) {
+                        if (!current_credential.signature.verify(current_issuer.public_key, credential_hash)) {
                             assert(false, "Signature is invalid");
                             current_check = false;
-                        } else if (!subCredential.non_revocation_proof.verify(credential_hash)) {
+                        } else if (!current_credential.non_revocation_proof.verify(credential_hash, revocation_roots[vcIndex])) {
                             assert(false, "Non Revocation Proof is invalid");
                             current_check = false;
                         }
@@ -160,71 +65,44 @@ fn check_conditions(criteria: AccessControlCriteria, credential: UnifiedCredenti
             }
         }
 
-        let new_i: i8 = (i as i8) - (1 as i8);
-        // println(new_i);
-        if (new_i >= 0) {
-            let operator = criteria.combinations[new_i];
-
-            // println(new_i);
-
-            if (operator == "&") {
-                current_check = previous_check & current_check;
-            } else if (operator == "|") {
-                current_check = previous_check | current_check;
-            } else {
-                assert(false, "Combination Operator is not supported");
-                current_check = false;
-            }
-            // println(operator);
-            // println(current_check);
-        }
-
-        // assert(current_check);
-        previous_check = current_check;
+        condition_validations[i] = current_check;
     }
 
-    assert(current_check);
+    condition_validations
 }
 
-fn hash_credential(credential: Credential) -> Field {
-    let mut claimHash = 0;
+fn validate_predicates(predicates: [u8; MAX_CONDITIONS], condition_validations: [bool; MAX_CONDITIONS]) -> bool {
+    let mut results = [true; MAX_CONDITIONS];
+    let mut i: u64 = 0;
 
-    for i in 0..credential.claims.len() {
-        if (i == 0) {
-            claimHash = poseidon::bn254::hash_2([credential.claims[i].code, credential.claims[i].value as Field]);
+    println(results);
+    for j in 0..MAX_CONDITIONS {
+        i = MAX_CONDITIONS - j - 1;
+
+        println(i);
+        if predicates[i] >= 2 {
+            results[i] = condition_validations[predicates[i] - 2];
         } else {
-            claimHash = poseidon::bn254::hash_3([claimHash, credential.claims[i].code, credential.claims[i].value as Field]);
+            // derived_index = (i - 2) / 2;
+            // println(derived_index);
+            if predicates[i] == 0 {
+                results[i] = results[i * 2 + 1] & results[i * 2 + 2];
+            } else {
+                results[i] = results[i * 2 + 1] | results[i * 2 + 2];
+            }
         }
+
+        println(results);
     }
 
-    poseidon::bn254::hash_6(
-        [
-        credential.subject_code, credential.issuer.code, credential.issuer.public_key.x, credential.issuer.public_key.y, credential.expired_date as Field, claimHash
-    ]
-    )
+    results[0]
 }
 
-fn check_signature(credential: Credential, calculated_hash: Field) -> bool {
-    eddsa_poseidon_verify(
-        credential.issuer.public_key.x,
-        credential.issuer.public_key.y,
-        credential.signature.s,
-        credential.signature.r8.x,
-        credential.signature.r8.y,
-        calculated_hash
-    )
-}
+fn main(criteria: AccessControlCriteria, credentials: [Credential; MAX_CREDENTIALS], public_keys: [Issuer; MAX_CREDENTIALS], proving_time: u16, revocation_roots: [Field; MAX_CREDENTIALS]) {
+    let condition_validations = validate_conditions(criteria.conditions, credentials, public_keys, proving_time, revocation_roots);
 
+    let condition_validations = [true; MAX_CONDITIONS];
+    let verification = validate_predicates(criteria.predicates, condition_validations);
 
-fn main(criteria: AccessControlCriteria, credential: UnifiedCredential, temp: pub Field) {
-    // check the criteria
-    check_conditions(criteria, credential);
-    // (calculated_hash, credential.credentials[0].hash)
-}
-
-#[test]
-fn test_main() {
-    // main(1, 2);
-    // Uncomment to make test fail
-    // main(1, 1);
+    assert(verification == true);
 }

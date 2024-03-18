@@ -1,49 +1,32 @@
-temp = "0x0"
+proving_time = "0x5"
+revocation_roots = [ "0x0" ]
 
 [criteria]
-combinations = [ "&" ]
-valid_date = "0x5"
+predicates = [ "0x2" ]
 
   [[criteria.conditions]]
-  name = "birth_day "
+  attr_code = "0x62697274685f646179"
   operator = "> "
-  value = "0x12"
-  issuer = "issuer00"
+  value = "0xa"
+  issuer_codes = [ "0x6973737565723030" ]
 
-  [[criteria.conditions]]
-  name = "birth_day "
-  operator = "> "
-  value = "0x12"
-  issuer = "issuer00"
-
-[[credential.credentials]]
-subject = "ken     "
+[[credentials]]
 subject_code = "0x6b656e2020202020"
 expired_date = "0x5"
-hash = "0x29cf6b2ca33233d7312b60f4c221cf6832dede5ec213f4fbc9435ab41546be4d"
+issuer_index = "0x0"
 
-  [credential.credentials.issuer]
-  name = "issuer00"
-  code = "0x6973737565723030"
-
-    [credential.credentials.issuer.public_key]
-    x = "0x2601ded51b3d232bb40791f4761b34da7170c680dc1f27d87a8970320de932f8"
-    y = "0x1e67325076cea0b9af317ff09627610d24ef943cce4da5dcf1c15b126b04911f"
-
-  [[credential.credentials.claims]]
-  name = "birth_day "
-  code = "0x62697274685f64617920"
+  [[credentials.claims]]
+  code = "0x62697274685f646179"
   value = "0x13"
 
-  [credential.credentials.signature]
-  s = "0x52c940b51673aef52d640b8a421de7d6f3c6eb43323856e572a39cc76d0d998"
+  [credentials.signature]
+  s = "0x1642a2d884dceca858cfaab9fd4b631be74d93e4bcaac906b30fd5f34930ba3"
 
-    [credential.credentials.signature.r8]
-    x = "0x10dced9efb74cc13f65284d908dd357848e4f9ae2b70870c1907b1edd1b9b6b5"
-    y = "0x283a928f939e6eab28360395740d35c5930e34fa1225398a8ef049c8a19f2704"
+    [credentials.signature.r8]
+    x = "0x26915513ce3a9284240da002846956a296fd64390c50f2594c648ec85efb821f"
+    y = "0x1840db8a3912aa58c64d7f9527286c053c241051fa0c9b31835eb182fb623125"
 
-  [credential.credentials.non_revocation_proof]
-  root = "0x0"
+  [credentials.non_revocation_proof]
   siblings = [
   "0x0",
   "0x0",
@@ -58,3 +41,10 @@ hash = "0x29cf6b2ca33233d7312b60f4c221cf6832dede5ec213f4fbc9435ab41546be4d"
 ]
   old_item = "0x0"
   is_old_0 = "0x1"
+
+[[public_keys]]
+issuer_code = "0x6973737565723030"
+
+  [public_keys.public_key]
+  x = "0x2601ded51b3d232bb40791f4761b34da7170c680dc1f27d87a8970320de932f8"
+  y = "0x1e67325076cea0b9af317ff09627610d24ef943cce4da5dcf1c15b126b04911f"
