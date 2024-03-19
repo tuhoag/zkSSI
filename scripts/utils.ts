@@ -1,4 +1,6 @@
-import childProcess from "node:child_process";
+import { max, mean, std } from "mathjs";
+import pidusage from "pidusage";
+import childProcess, { ChildProcess } from "node:child_process";
 import toml from '@iarna/toml';
 import { BackendOptions, BarretenbergBackend, ProofData } from "@noir-lang/backend_barretenberg";
 import { Noir } from "@noir-lang/noir_js";
@@ -36,7 +38,7 @@ class MyProofData {
 
     return new MyProofData(
       bytesToHex(proofData.proof as Buffer),
-        publicInputs
+      publicInputs
     );
   }
 
@@ -80,6 +82,53 @@ export function getDefaultNoirProgramOptions() {
   };
 }
 
+function delay(time: number) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+type PerformanceStat = {
+  executionTime: number;
+  peakMemoryUsage: number;
+  meanMemoryUsage: number;
+  stdMemoryUsage: number;
+}
+
+async function executeAndMeasureStats(command: string, options: { cwd: string, debug: boolean, interval: number }): Promise<PerformanceStat> {
+  const myChildProcess = childProcess.exec(command, { cwd: options.cwd });
+
+  console.log(`executing ${command}`);
+  let memoryUsages: number[] = [];
+  let startTime = (new Date()).getTime();
+
+  while (true) {
+    try {
+      await delay(options.interval);
+      const temp = await pidusage(myChildProcess.pid!);
+
+      memoryUsages.push(temp.memory);
+
+      if (options.debug) {
+        console.log(temp);
+      }
+    } catch (error) {
+      break;
+    }
+  }
+
+  let duration = (new Date()).getTime() - startTime;
+
+  let maxMemoryUsage = max(memoryUsages);
+  let meanMemoryUsage = mean(memoryUsages);
+  let stdMemoryUsage = std(memoryUsages, "unbiased") as number;
+
+  return {
+    executionTime: duration,
+    peakMemoryUsage: maxMemoryUsage,
+    meanMemoryUsage: meanMemoryUsage,
+    stdMemoryUsage: stdMemoryUsage
+  }
+}
+
 export class NoirProgram {
   name: string;
   options?: NoirProgramOptions;
@@ -117,7 +166,7 @@ export class NoirProgram {
   }
 
   public async proveNoirJS(inputData: any): Promise<ProofData> {
-    const proof = await this.noir!.generateFinalProof(inputData);
+    const proof = await this.noir!.generateProof(inputData);
 
     return proof;
   }
@@ -127,15 +176,17 @@ export class NoirProgram {
       options = this.options;
     }
 
+    console.time("NoirProgram:prove");
     if (options!.isJSProving) {
       return MyProofData.fromNoirProofData(await this.proveNoirJS(inputData));
     } else {
       return this.proveCLI(inputData, options);
     }
+    console.timeEnd("NoirProgram:prove");
   }
 
   async verifyNoirJS(proofData: MyProofData): Promise<boolean> {
-    const verification = await this.noir!.verifyFinalProof(proofData.toNoirProofData());
+    const verification = await this.noir!.verifyProof(proofData.toNoirProofData());
     return verification;
   }
 
@@ -143,14 +194,11 @@ export class NoirProgram {
     try {
       const circuitDirPath = getCircuitDirPath(this.name);
       const command = `nargo verify --verifier-name ${options?.verifierName!}`;
-      console.log(`executing ${command}`);
 
       console.time("verifying");
-      childProcess.execSync(command, {
-        cwd: circuitDirPath,
-      })
+      const stats = await executeAndMeasureStats(command, { cwd: circuitDirPath, interval: 1000, debug: false });
       console.timeEnd("verifying");
-
+      console.log("verifying stats: ", stats);
       return true;
     } catch (error) {
       return false;
@@ -180,13 +228,10 @@ export class NoirProgram {
     const circuitDirPath = getCircuitDirPath(this.name);
     const command = `nargo prove --prover-name ${options?.proverName!}`;
 
-    console.log(`executing ${command}`);
-
-    console.time("proving");
-    childProcess.execSync(command, {
-      cwd: circuitDirPath,
-    })
-    console.timeEnd("proving");
+    console.time("NoirProgram:proveCLI:prove");
+    const stats = await executeAndMeasureStats(command, { cwd: circuitDirPath, debug: false, interval: 1000 });
+    console.timeEnd("NoirProgram:proveCLI:prove");
+    console.log("proving stats: ", stats);
 
     // read the circuit proof
     const proofFilePath = resolve(circuitDirPath, "proofs", `${this.name}.proof`);

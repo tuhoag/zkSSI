@@ -2,8 +2,8 @@ use crate::helpers;
 use dep::std;
 
 
-pub fn verify<N>(root : Field, key : Field, value : Field, siblings : [Field; N]) {
-    verifyExtended(1, root, 0, 0, 0, key, value, 0, siblings);
+pub fn verify<N>(root : Field, key : Field, value : Field, siblings : [Field; N]) -> bool {
+    verifyExtended(1, root, 0, 0, 0, key, value, 0, siblings)
 }
 
 #[field(bn254)]
@@ -28,7 +28,7 @@ pub fn verifyExtended<N>(enabled : Field, root : Field, oldKey : Field, oldValue
     let mut stI0s : [Field; N] = [0; N];
     let mut stInews : [Field; N] = [0; N];
     let mut stNas : [Field; N] = [0; N];
-	for i in 0..nLevels {
+	for i in 0..(nLevels as u8) {
         let (stTop, stInew, stIold, stI0, stNa) = if i == 0 {
             smVerifier(isOld0, levIns[0], fnc, enabled, 0, 0, 0, 1 - enabled)
         } else {
@@ -47,15 +47,18 @@ pub fn verifyExtended<N>(enabled : Field, root : Field, oldKey : Field, oldValue
 
     let mut levels : [Field; N] = [0; N];
     let mut i = nLevels-1;
-    for n in 0..nLevels {
+    for n in 0..(nLevels as u8) {
         levels[i] = levelVerifier(stTops[i], stInews[i], stIolds[i], siblings[i],
             hash1Old, hash1New, n2bNew[i] as u1, if n != 0 { levels[i+1] } else { 0 });
         i -= 1;
     }
 
     let areKeyEquals = if oldKey == key { 1 } else { 0 };
-	assert(helpers::multiAnd([fnc, 1 - isOld0, areKeyEquals, enabled]) == 0);
-    root == levels[0]
+
+	// assert(helpers::multiAnd([fnc, 1 - isOld0, areKeyEquals, enabled]) == 0);
+
+    (helpers::multiAnd([fnc, 1 - isOld0, areKeyEquals, enabled]) == 0) & (root == levels[0])
+
     // assert(root == levels[0]);
 }
 
@@ -120,7 +123,7 @@ fn test_verify() {
     for i in 0..siblings.len() {
         totalSiblings[i] = siblings[i];
     }
-    verify(root, key, value, totalSiblings);
+    assert(verify(root, key, value, totalSiblings));
 }
 
 #[test]

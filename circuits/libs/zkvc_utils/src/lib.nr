@@ -2,17 +2,6 @@ use dep::std::hash::poseidon;
 use dep::std::eddsa::eddsa_poseidon_verify;
 use dep::smt;
 
-global MAX_CONDITIONS = 1;
-global MAX_ISSUERS = 1;
-global MAX_CREDENTIALS = 1;
-global MAX_CLAIMS = 1;
-
-global MAX_INPUT_SIBLINGS = 10;
-global MAX_SIBLINGS = 128;
-
-// global ATTRIBUTE_NAME_LEN = 10;
-// global ISSUER_NAME_LEN = 8;
-
 struct Point {
     x: Field,
     y: Field,
@@ -38,12 +27,12 @@ impl Signature {
     }
 }
 
-struct Condition {
+struct Condition<I> {
     // name: str<ATTRIBUTE_NAME_LEN>,
     attr_code: Field,
     operator: str<2>,
     value: u8,
-    issuer_codes: [Field; MAX_ISSUERS],
+    issuer_codes: [Field; I],
 }
 
 struct Issuer {
@@ -59,38 +48,37 @@ struct Claim {
 }
 
 
-
-struct ExclusionMerkleTreeProof {
-    siblings: [Field; MAX_INPUT_SIBLINGS],
+struct ExclusionMerkleTreeProof<T> {
+    siblings: [Field; T],
     // root: Field,
     old_item: Field,
     is_old_0: Field,
 }
 
-impl ExclusionMerkleTreeProof {
+impl<T> ExclusionMerkleTreeProof<T> {
     fn verify(self, hash: Field, root: Field)-> bool {
-        let mut totalSiblings : [Field; MAX_SIBLINGS] = [0; MAX_SIBLINGS];
-        for i in 0..self.siblings.len() {
-            totalSiblings[i] = self.siblings[i];
-        }
+        // let mut totalSiblings : [Field; MAX_SIBLINGS] = [0; MAX_SIBLINGS];
+        // for i in 0..self.siblings.len() {
+        //     totalSiblings[i] = self.siblings[i];
+        // }
 
-        smt::verifier::verifyExtended(1, root, self.old_item, self.old_item, self.is_old_0, hash, 0, 1, totalSiblings)
+        smt::verifier::verifyExtended(1, root, self.old_item, self.old_item, self.is_old_0, hash, 0, 1, self.siblings)
     }
 }
 
-struct Credential {
+struct Credential<C,T> {
     // issuer: Issuer,
     // subject: str<ISSUER_NAME_LEN>,
     subject_code: Field,
-    claims: [Claim; MAX_CLAIMS],
-    expired_date: u16,
+    claims: [Claim; C],
+    expired_date: u8,
     // hash: Field,
     signature: Signature,
-    non_revocation_proof: ExclusionMerkleTreeProof,
-    issuer_index: Field,
+    non_revocation_proof: ExclusionMerkleTreeProof<T>,
+    issuer_index: u8,
 }
 
-impl Credential {
+impl<C,T> Credential<C,T> {
     fn calculate_hash(self, issuer: Issuer) -> Field {
         let mut claimHash = 0;
 
@@ -110,11 +98,11 @@ impl Credential {
     }
 }
 
-struct AccessControlCriteria {
-    conditions: [Condition; MAX_CONDITIONS],
-    predicates: [u8; MAX_CONDITIONS],
+struct AccessControlCriteria<CO,I,P> {
+    conditions: [Condition<I>; CO],
+    predicates: [u8; P],
 }
 
-struct UnifiedCredential {
-    credentials: [Credential; MAX_CREDENTIALS],
+struct UnifiedCredential<C,T,CE> {
+    credentials: [Credential<C,T>; CE],
 }

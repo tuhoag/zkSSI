@@ -1,33 +1,55 @@
-proving_time = "0x5"
+proving_time = 0
 revocation_roots = [ "0x0" ]
 
 [criteria]
-predicates = [ "0x2" ]
+predicates = [ 2 ]
 
   [[criteria.conditions]]
   attr_code = "0x62697274685f646179"
   operator = "> "
-  value = "0xa"
+  value = 10
   issuer_codes = [ "0x6973737565723030" ]
 
 [[credentials]]
-subject_code = "0x6b656e2020202020"
-expired_date = "0x5"
-issuer_index = "0x0"
+subject_code = "0x6b656e"
+expired_date = 5
+issuer_index = 0
 
   [[credentials.claims]]
   code = "0x62697274685f646179"
-  value = "0x13"
+  value = 19
 
   [credentials.signature]
-  s = "0x1642a2d884dceca858cfaab9fd4b631be74d93e4bcaac906b30fd5f34930ba3"
+  s = "0x5762c39ecb736513839365406c877a66783ad54a10bc81206ab5c9a8476d881"
 
     [credentials.signature.r8]
-    x = "0x26915513ce3a9284240da002846956a296fd64390c50f2594c648ec85efb821f"
-    y = "0x1840db8a3912aa58c64d7f9527286c053c241051fa0c9b31835eb182fb623125"
+    x = "0x27f3c693edd9b0d40b41c8968b02a36bf79ac98421403b0b7048c6ac87e467d3"
+    y = "0xef455e9fce2452dcbff7b3bc0441d774efa4e3f31f7bc084402771b1da4bed1"
 
   [credentials.non_revocation_proof]
   siblings = [
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
+  "0x0",
   "0x0",
   "0x0",
   "0x0",

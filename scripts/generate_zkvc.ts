@@ -52,13 +52,13 @@ interface NoirSerializable {
     serializeNoir(): any;
 }
 
-const MAX_CONDITIONS = 1;
-const MAX_ISSUERS = 1;
-const MAX_CREDENTIALS = 1;
-const MAX_CLAIMS = 1;
+// const MAX_CONDITIONS = 3;
+// const MAX_ISSUERS = 1;
+// const MAX_CREDENTIALS = 1;
+// const MAX_CLAIMS = 1;
 
-const MAX_SIBLINGS = 128;
-const MAX_INPUT_SIBLINGS = 10;
+// const MAX_SIBLINGS = 128;
+const MAX_INPUT_SIBLINGS = 32;
 
 function paddingArray(array: Array<string>, num: number, value: any) {
     while (array.length < num) {
@@ -173,7 +173,8 @@ class Claim implements NoirSerializable {
         return {
             // name: this.name,
             code: this.getCode(),
-            value: bigIntToHex(BigInt(this.value)),
+            // value: bigIntToHex(BigInt(this.value)),
+            value: this.value,
         };
     }
 
@@ -242,7 +243,8 @@ class Credential implements NoirSerializable {
             // subject: this.subject,
             subject_code: bigIntToHex(convertNormalStringToBigInt(this.subject)),
             claims: serializedClaims,
-            expired_date: bigIntToHex(BigInt(this.expiredDate)),
+            // expired_date: bigIntToHex(BigInt(this.expiredDate)),
+            expired_date: this.expiredDate,
             // hash: bigIntToHex(this.updateHash()),
             signature: this.updateSignature().serializeNoir(),
             non_revocation_proof: this.nonRevocationProof!.serializeNoir(),
@@ -321,7 +323,7 @@ class UnifiedCredential implements NoirSerializable {
             }
 
             serializedCredentials.push({
-                subject_code, claims, expired_date, signature, non_revocation_proof, issuer_index: bigIntToHex(BigInt(issuerIndex))
+                subject_code, claims, expired_date, signature, non_revocation_proof, issuer_index: issuerIndex
             });
         }
 
@@ -375,7 +377,8 @@ class Condition implements NoirSerializable {
             // name: this.name,
             attr_code: bigIntToHex(convertNormalStringToBigInt(this.attrName)),
             operator: this.operator,
-            value: bigIntToHex(this.value),
+            // value: bigIntToHex(this.value),
+            value: this.value,
             issuer_codes: issuerCodes,
         };
     }
@@ -438,7 +441,8 @@ class Criteria implements NoirSerializable {
                     throw new Error(`Operator ${currentNode?.value} is unsupported`);
                 }
 
-                serializedPredicates.push(bigIntToHex(BigInt(value)));
+                // serializedPredicates.push(bigIntToHex(BigInt(value)));
+                serializedPredicates.push(value);
 
                 currentNodes.push(currentNode!.left!);
                 currentNodes.push(currentNode!.right!);
@@ -456,7 +460,8 @@ class Criteria implements NoirSerializable {
                     addedNodesHash.set(hash, addedConditionId);
                 }
 
-                serializedPredicates.push(bigIntToHex(BigInt(addedConditionId + 2)));
+                // serializedPredicates.push(bigIntToHex(BigInt(addedConditionId + 2)));
+                serializedPredicates.push(addedConditionId + 2);
             }
         }
 
@@ -467,82 +472,121 @@ class Criteria implements NoirSerializable {
     }
 }
 
-
-async function main() {
-    const privateKey = "secret";
-
+async function generateEmptyNonRevocationTrees(numIssuers: number): Promise<Map<string, SMT>> {
     let issuerRevocationTrees = new Map<string, SMT>();
-    issuerRevocationTrees.set("issuer00", await createSparseMerkleTree());
-    issuerRevocationTrees.set("issuer01", await createSparseMerkleTree());
 
-    const credentials = [
-        new Credential(
-            new Issuer("issuer00", privateKey),
-            "ken     ",
-            5,
-            [
-                new Claim("birth_day", 19)
-            ],
-            privateKey),
-    ];
+    for (let i = 0; i < numIssuers; i++) {
+        issuerRevocationTrees.set(`issuer0${i}`, await createSparseMerkleTree());
+    }
 
+    return issuerRevocationTrees;
+}
+
+async function generateRoots(credentials: Credential[], issuerRevocationTrees: Map<string, SMT>) {
     let roots = [];
     for (let credential of credentials) {
-        const nonRevocationTree = issuerRevocationTrees.get(credential.issuer.name);
+        const nonRevocationTree = issuerRevocationTrees.get(credential.issuer.name)!;
 
         const hash = credential.updateHash();
-        const proof = await MerkleTreeProof.generateExclusionProof(nonRevocationTree!, hash);
+
+        const proof = await MerkleTreeProof.generateExclusionProof(nonRevocationTree, hash);
         credential.nonRevocationProof = proof;
-        const root = nonRevocationTree!.F.toObject(nonRevocationTree!.root);
+        const root = nonRevocationTree.F.toObject(nonRevocationTree.root);
         roots.push(bigIntToHex(root));
     }
 
+    return roots;
+}
+
+function generateVCs(numCredentials: number) {
+    const privateKey = "secret";
+    let credentials: Credential[] = [];
+
+    for (let i = 0; i < numCredentials; i++) {
+        credentials.push(new Credential(
+            new Issuer(`issuer0${i}`, privateKey),
+                "ken",
+                5,
+                [
+                    new Claim("birth_day", 19)
+                ],
+                privateKey)
+        );
+    }
+
+    return credentials;
+}
+
+function getConditionsAndVCs(numConditions: number) {
+    let conditions: ConditionNode;
+    let credentials: Credential[] = generateVCs(numConditions);
+
+    if (numConditions == 1) {
+        conditions = {
+            value: new Condition("birth_day", "> ", 10, ["issuer00"])
+        };
+
+    } else if (numConditions == 2) {
+        conditions = {
+            value: "&",
+            left: {
+                value: new Condition("birth_day", "> ", 10, ["issuer00"]),
+            },
+            right: {
+                value: new Condition("birth_day", "> ", 10, ["issuer01"]),
+            }
+        };
+
+    } else {
+        throw new Error(`Unsupported test setting number of issuers: ${numConditions}`);
+    }
+
+    return {conditions, credentials};
+}
+
+async function generateTestInputs(numIssuers: number) {
+    const { conditions, credentials } = getConditionsAndVCs(numIssuers);
+
+    let issuerRevocationTrees = await generateEmptyNonRevocationTrees(numIssuers);
+    let roots = await generateRoots(credentials, issuerRevocationTrees);
+
     const unifiedCredential = new UnifiedCredential(credentials);
-
-    const singleCondition: ConditionNode = {
-        value: new Condition("birth_day", "> ", 10, ["issuer00"])
-    };
-    // const conditions: ConditionNode = {
-    //     value: "&",
-    //     left: {
-    //         value: "|",
-    //         left: {
-    //             value: new Condition("birth_day", "> ", 10, ["issuer00"])
-    //         },
-    //         right: {
-    //             value: new Condition("birth_day", "> ", 10, ["issuer00"])
-    //         },
-    //     },
-    //     right: {
-    //         value: new Condition("birth_day", "> ", 10, ["issuer00"])
-    //     }
-    // };
-
     const criteria = new Criteria(
-        singleCondition
+        conditions
     );
 
     const {credentials: serializedCredentials, issuers} = unifiedCredential.serializeNoir();
 
-    const inputs = {
+    return {
         criteria: criteria.serializeNoir(),
         credentials: serializedCredentials,
         public_keys: issuers,
-        proving_time: bigIntToHex(BigInt(5)),
+        proving_time: 0,
         revocation_roots: roots,
     }
+}
+
+
+async function main() {
+    // const { credentials, conditions, roots } =  await testCondition(1);
+    const inputs = await generateTestInputs(1);
 
     console.dir(inputs, { depth: null });
 
     const options = getDefaultNoirProgramOptions();
 
     const program = await NoirProgram.createProgram("vcp_generation", options);
+
+    console.time("prove");
     const proof = await program.prove(inputs);
-    console.log(proof);
+    console.timeEnd("prove");
+    // console.dir(proof, {depth: null});
     // console.log(bigIntToHex(proof.proof));
 
+    console.time("verify");
     const verification = await program.verify(proof);
-    console.log(`off-chain verification: ${verification}`);
+    console.timeEnd("verify");
+    console.dir(`off-chain verification: ${verification}`, {depth: null});
 
     // const { vcpVerifierContract } = await ignition.deploy(ZKVCModule);
     // // const hexProofData = proof.toHexProofData();
@@ -552,8 +596,6 @@ async function main() {
     // console.log(`on-chain verification: ${onChainVerification}`);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
     console.error(error);
     process.exitCode = 1;
