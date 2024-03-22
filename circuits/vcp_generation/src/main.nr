@@ -41,9 +41,9 @@ global MAX_SIBLINGS = 32;
 
 fn test(criteria: AccessControlCriteria<MAX_CONDITIONS,MAX_CONDITION_ISSUERS,MAX_PREDICATES>,
     credentials: [Credential<MAX_CLAIMS,MAX_SIBLINGS>; MAX_CREDENTIALS],
-    public_keys: pub [Issuer; MAX_ISSUERS],
-    proving_time: pub u8,
-    revocation_roots: pub [Field; MAX_CREDENTIALS]) {
+    public_keys: [Issuer; MAX_ISSUERS],
+    proving_time: u8,
+    revocation_roots: [Field; MAX_CREDENTIALS]) {
     assert(proving_time == 0);
     assert(revocation_roots.len() == MAX_CREDENTIALS);
     for i in 0..MAX_CREDENTIALS {
@@ -97,24 +97,22 @@ fn test(criteria: AccessControlCriteria<MAX_CONDITIONS,MAX_CONDITION_ISSUERS,MAX
 
 
 fn main(
-    criteria: AccessControlCriteria<MAX_CONDITIONS,MAX_CONDITION_ISSUERS,MAX_PREDICATES>,
+    criteria: pub AccessControlCriteria<MAX_CONDITIONS,MAX_CONDITION_ISSUERS,MAX_PREDICATES>,
     credentials: [Credential<MAX_CLAIMS,MAX_SIBLINGS>; MAX_CREDENTIALS],
     public_keys: pub [Issuer; MAX_ISSUERS],
     proving_time: pub u8,
     revocation_roots: pub [Field; MAX_CREDENTIALS]
 ) {
-    test(criteria, credentials, public_keys, proving_time, revocation_roots);
-    // let condition_validations = validate_conditions(
-    //     criteria.conditions,
-    //     credentials,
-    //     public_keys,
-    //     proving_time,
-    //     revocation_roots
-    // );
+    // test(criteria, credentials, public_keys, proving_time, revocation_roots);
+    let condition_validations = validate_conditions(
+        criteria.conditions,
+        credentials,
+        public_keys,
+        proving_time,
+        revocation_roots
+    );
 
-    // let verification = validate_predicates(criteria.predicates, condition_validations);
+    let verification = validate_predicates(criteria.predicates, condition_validations);
 
-    // assert(verification == true);
-
-
+    assert(verification == true);
 }

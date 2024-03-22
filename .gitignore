@@ -14,3 +14,4 @@ node_modules
 /coverage.json
 /data/data.json
 .DS_Store
+target

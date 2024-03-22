@@ -198,8 +198,8 @@ class MySignature implements NoirSerializable {
     }
 
     serializeNoir() {
-        const temps = bigIntToHex(this.s);
-        console.log(temps, this.s);
+        // const temps = bigIntToHex(this.s);
+        // console.log(temps, this.s);
         // throw new Error("");
 
         return {
