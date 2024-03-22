@@ -1,0 +1,17 @@
+[package]
+name = "circuit_clients"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ark-ff = "0.4.2"
+clap = { version = "4.5.3", features = ["derive"] }
+noir_rs = { git = "https://github.com/visoftsolutions/noir_rs.git", branch = "latest", package = "noir_rs" }
+num-bigint = "0.4.4"
+num-traits = "0.2.18"
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0.197"
+serde_json = "1.0"
+toml = "0.8.12"
