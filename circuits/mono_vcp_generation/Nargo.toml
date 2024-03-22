@@ -1,5 +1,5 @@
 [package]
-name = "vcp_generation"
+name = "mono_vcp_generation"
 type = "bin"
 authors = ["Tu Hoang"]
 compiler_version = ">=0.19.4"

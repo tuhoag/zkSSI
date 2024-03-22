@@ -20,7 +20,7 @@ import {
     packPublicKey,
     unpackPublicKey
 } from "@zk-kit/eddsa-poseidon"
-import path from "path";
+import path, { resolve } from "path";
 import {
     bigNumberishToBigint,
     bigNumberishToBuffer,
@@ -28,16 +28,17 @@ import {
     isBigNumberish,
     isStringifiedBigint
 } from "@zk-kit/utils"
-import { newMemEmptyTrie, SMT, SMTMemDb, BigNumberish  } from 'circomlibjs';
+import { newMemEmptyTrie, SMT, SMTMemDb, BigNumberish } from 'circomlibjs';
 
 import lodash from "lodash";
 import ZKVCModule from "../ignition/modules/zkvc";
 
-import { NoirProgram, NoirProgramOptions, getDefaultNoirProgramOptions } from "./utils";
+import { MyProofData, NoirProgram, NoirProgramOptions, PerformanceStat, getDefaultNoirProgramOptions } from "./utils";
 import { bigIntToHex } from "@nomicfoundation/ethereumjs-util";
 import exp from "constants";
 import { createSMT as createSparseMerkleTree } from "./circom_smt_utils";
 import { hexToBigInt } from "viem";
+import math, { combinations } from "mathjs";
 
 function convertNormalStringToBigInt(data: string) {
     const encoder = new TextEncoder();
@@ -58,7 +59,7 @@ interface NoirSerializable {
 // const MAX_CLAIMS = 1;
 
 // const MAX_SIBLINGS = 128;
-const MAX_INPUT_SIBLINGS = 32;
+let MAX_SIBLINGS = 32;
 
 function paddingArray(array: Array<string>, num: number, value: any) {
     while (array.length < num) {
@@ -87,11 +88,11 @@ class MerkleTreeProof implements NoirSerializable {
 
         let siblings = res.siblings;
 
-        for (let i=0; i<siblings.length; i++) {
+        for (let i = 0; i < siblings.length; i++) {
             siblings[i] = tree.F.toObject(siblings[i]);
         }
 
-        assert(siblings.length <= MAX_INPUT_SIBLINGS, `Siblings has more than ${MAX_INPUT_SIBLINGS} items.`);
+        assert(siblings.length <= MAX_SIBLINGS, `Siblings has more than ${MAX_SIBLINGS} items.`);
 
 
         // const root = tree.F.toObject(tree.root);
@@ -103,11 +104,11 @@ class MerkleTreeProof implements NoirSerializable {
     serializeNoir() {
         let allSiblings = Array<string>();
 
-        for (let i=0; i<this.siblings.length; i++) {
+        for (let i = 0; i < this.siblings.length; i++) {
             allSiblings[i] = bigIntToHex(this.siblings[i]);
         }
 
-        paddingArray(allSiblings, MAX_INPUT_SIBLINGS, bigIntToHex(BigInt(0)));
+        paddingArray(allSiblings, MAX_SIBLINGS, bigIntToHex(BigInt(0)));
         // while (allSiblings.length < MAX_INPUT_SIBLINGS) {
         //     allSiblings.push(bigIntToHex(BigInt(0)));
         // }
@@ -116,7 +117,7 @@ class MerkleTreeProof implements NoirSerializable {
             // root: bigIntToHex(this.root),
             siblings: allSiblings,
             old_item: bigIntToHex(this.oldItem),
-            is_old_0: this.isOld0 ? bigIntToHex(BigInt(1)): bigIntToHex(BigInt(0)),
+            is_old_0: this.isOld0 ? 1 : 0,
         };
     }
 }
@@ -190,13 +191,17 @@ class MySignature implements NoirSerializable {
 
     constructor(rawSignature: Signature<string>) {
         this.s = BigInt(rawSignature.S);
-        this.r8 = new Point (
+        this.r8 = new Point(
             BigInt(rawSignature.R8[0]),
             BigInt(rawSignature.R8[1])
         );
     }
 
     serializeNoir() {
+        const temps = bigIntToHex(this.s);
+        console.log(temps, this.s);
+        // throw new Error("");
+
         return {
             s: bigIntToHex(this.s),
             r8: {
@@ -234,7 +239,7 @@ class Credential implements NoirSerializable {
 
     serializeNoir() {
         let serializedClaims = Array();
-        for (const claim of this.claims){
+        for (const claim of this.claims) {
             serializedClaims.push(claim.serializeNoir());
         }
 
@@ -245,7 +250,7 @@ class Credential implements NoirSerializable {
             claims: serializedClaims,
             // expired_date: bigIntToHex(BigInt(this.expiredDate)),
             expired_date: this.expiredDate,
-            // hash: bigIntToHex(this.updateHash()),
+            hash: bigIntToHex(this.updateHash()),
             signature: this.updateSignature().serializeNoir(),
             non_revocation_proof: this.nonRevocationProof!.serializeNoir(),
         }
@@ -312,7 +317,7 @@ class UnifiedCredential implements NoirSerializable {
         let issuerMap = new Map<string, number>();
 
         for (const credential of this.credentials) {
-            const {issuer, subject_code, claims, expired_date, signature, non_revocation_proof } = credential.serializeNoir();
+            const { issuer, subject_code, claims, expired_date, hash, signature, non_revocation_proof } = credential.serializeNoir();
 
             let issuerIndex = issuerMap.get(issuer.issuer_code);
 
@@ -342,6 +347,14 @@ class Condition implements NoirSerializable {
     operator: string;
     value: bigint;
     issuers: string[];
+    operatorMap: Record<string, ComparisonOperator> = {
+        "==": ComparisonOperator.Equal,
+        "!=": ComparisonOperator.NotEqual,
+        ">": ComparisonOperator.GreaterThan,
+        "<": ComparisonOperator.LessThan,
+        ">=": ComparisonOperator.GreaterThanOrEqual,
+        "<=": ComparisonOperator.LessThanOrEqual
+    }
 
     constructor(attrName: string, operator: string, value: number, issuers: string[]) {
         this.attrName = attrName;
@@ -373,10 +386,14 @@ class Condition implements NoirSerializable {
             issuerCodes.push(bigIntToHex(convertNormalStringToBigInt(issuer)));
         }
 
+        // let serializedOperator: number;
+
+
+
         return {
             // name: this.name,
             attr_code: bigIntToHex(convertNormalStringToBigInt(this.attrName)),
-            operator: this.operator,
+            operator: this.operatorMap[this.operator],
             // value: bigIntToHex(this.value),
             value: this.value,
             issuer_codes: issuerCodes,
@@ -505,12 +522,12 @@ function generateVCs(numCredentials: number) {
     for (let i = 0; i < numCredentials; i++) {
         credentials.push(new Credential(
             new Issuer(`issuer0${i}`, privateKey),
-                "ken",
-                5,
-                [
-                    new Claim("birth_day", 19)
-                ],
-                privateKey)
+            "ken",
+            5,
+            [
+                new Claim("birth_day", 19)
+            ],
+            privateKey)
         );
     }
 
@@ -521,27 +538,92 @@ function getConditionsAndVCs(numConditions: number) {
     let conditions: ConditionNode;
     let credentials: Credential[] = generateVCs(numConditions);
 
-    if (numConditions == 1) {
-        conditions = {
-            value: new Condition("birth_day", "> ", 10, ["issuer00"])
-        };
-
-    } else if (numConditions == 2) {
-        conditions = {
+    const conditionsMap2: Record<number, ConditionNode> = {
+        1: {
+            value: new Condition("birth_day", ">", 10, ["issuer00"])
+        },
+        2: {
             value: "&",
             left: {
-                value: new Condition("birth_day", "> ", 10, ["issuer00"]),
+                value: new Condition("birth_day", ">", 10, ["issuer00"]),
             },
             right: {
-                value: new Condition("birth_day", "> ", 10, ["issuer01"]),
+                value: new Condition("birth_day", ">", 10, ["issuer01"]),
             }
-        };
-
-    } else {
-        throw new Error(`Unsupported test setting number of issuers: ${numConditions}`);
+        },
+        3: {
+            value: "&",
+            left: {
+                value: "|",
+                left: {
+                    value: new Condition("birth_day", ">", 10, ["issuer00"]),
+                },
+                right: {
+                    value: new Condition("birth_day", ">", 10, ["issuer01"]),
+                }
+            },
+            right: {
+                value: new Condition("birth_day", ">", 10, ["issuer02"]),
+            }
+        },
+        4: {
+            value: "&",
+            left: {
+                value: "|",
+                left: {
+                    value: new Condition("birth_day", ">", 10, ["issuer00"]),
+                },
+                right: {
+                    value: new Condition("birth_day", ">", 10, ["issuer01"]),
+                }
+            },
+            right: {
+                value: "|",
+                left: {
+                    value: new Condition("birth_day", ">", 10, ["issuer02"]),
+                },
+                right: {
+                    value: new Condition("birth_day", ">", 10, ["issuer03"]),
+                }
+            }
+        },
+        5: {
+            value: "&",
+            left: {
+                value: "|",
+                left: {
+                    value: "&",
+                    left: {
+                        value: new Condition("birth_day", ">", 10, ["issuer00"])
+                    },
+                    right: {
+                        value: new Condition("birth_day", ">", 10, ["issuer01"])
+                    }
+                },
+                right: {
+                    value: new Condition("birth_day", ">", 10, ["issuer02"]),
+                }
+            },
+            right: {
+                value: "|",
+                left: {
+                    value: new Condition("birth_day", ">", 10, ["issuer03"]),
+                },
+                right: {
+                    value: new Condition("birth_day", ">", 10, ["issuer04"]),
+                }
+            }
+        }
     }
 
-    return {conditions, credentials};
+    if (numConditions in conditionsMap2) {
+        conditions = conditionsMap2[numConditions];
+        // console.log(conditions);
+    } else {
+        throw new Error(`Unsupported test setting number of conditions: ${numConditions}`);
+    }
+
+    return { conditions, credentials };
 }
 
 async function generateTestInputs(numIssuers: number) {
@@ -555,7 +637,7 @@ async function generateTestInputs(numIssuers: number) {
         conditions
     );
 
-    const {credentials: serializedCredentials, issuers} = unifiedCredential.serializeNoir();
+    const { credentials: serializedCredentials, issuers } = unifiedCredential.serializeNoir();
 
     return {
         criteria: criteria.serializeNoir(),
@@ -566,34 +648,218 @@ async function generateTestInputs(numIssuers: number) {
     }
 }
 
-
-async function main() {
-    // const { credentials, conditions, roots } =  await testCondition(1);
-    const inputs = await generateTestInputs(1);
-
-    console.dir(inputs, { depth: null });
+async function executeSingleProofMultiConditions(inputs: any): Promise<PerformanceStat[]> {
+    let performanceStats: PerformanceStat[] = [];
 
     const options = getDefaultNoirProgramOptions();
 
     const program = await NoirProgram.createProgram("vcp_generation", options);
 
+    // console.dir(inputs, {depth: null});
+    // throw new Error("");
+
     console.time("prove");
-    const proof = await program.prove(inputs);
+    const proof = await program.prove(inputs, undefined, performanceStats);
     console.timeEnd("prove");
     // console.dir(proof, {depth: null});
     // console.log(bigIntToHex(proof.proof));
 
     console.time("verify");
-    const verification = await program.verify(proof);
+    const verification = await program.verify(proof, undefined, performanceStats);
     console.timeEnd("verify");
-    console.dir(`off-chain verification: ${verification}`, {depth: null});
+    console.dir(`off-chain verification: ${verification}`, { depth: null });
 
-    // const { vcpVerifierContract } = await ignition.deploy(ZKVCModule);
-    // // const hexProofData = proof.toHexProofData();
-    // // console.log(hexProofData);
-    // const onChainVerification = await vcpVerifierContract.verify(proof.proof, proof.publicInputs);
-    // expect(onChainVerification).to.be.true;
-    // console.log(`on-chain verification: ${onChainVerification}`);
+    return performanceStats
+}
+
+function aggregatePerformanceStats(stats: PerformanceStat[]): PerformanceStat {
+    let totalExecutionTime = 0;
+    let maxPeakMemoryUsage = -1;
+    let meanMeanMemoryUsage = 0;
+    let meanStdMemoryUsage = 0;
+
+    for (const stat of stats) {
+        totalExecutionTime += stat.executionTime;
+        maxPeakMemoryUsage = Math.max(maxPeakMemoryUsage, stat.peakMemoryUsage);
+        meanMeanMemoryUsage += stat.meanMemoryUsage;
+        meanStdMemoryUsage += stat.stdMemoryUsage;
+    }
+
+    return {
+        name: stats[0].name,
+        executionTime: totalExecutionTime,
+        peakMemoryUsage: maxPeakMemoryUsage,
+        meanMemoryUsage: meanMeanMemoryUsage / stats.length,
+        stdMemoryUsage: meanStdMemoryUsage / stats.length,
+    }
+}
+
+async function generateProofsForMultiConditions(inputs: any, stats?: PerformanceStat[]): Promise<MyProofData[]> {
+    let performanceStats = Array<PerformanceStat>();
+    let proofs = Array<MyProofData>();
+    const options = getDefaultNoirProgramOptions();
+    const program = await NoirProgram.createProgram("mono_vcp_generation", options);
+
+    for(const condition of inputs.criteria.conditions) {
+        for(let iVC = 0; iVC < inputs.credentials.length; iVC ++) {
+            const vc = inputs.credentials[iVC];
+
+            const issuerCode = inputs.public_keys[vc.issuer_index].issuer_code;
+
+            if (condition.issuer_codes.includes(issuerCode)) {
+                const subInput = {
+                    criteria: {
+                        conditions: [condition],
+                        predicates: [2]
+                    },
+                    credentials: [
+                        {
+                            ...vc,
+                            issuer_index: 0
+                        }
+                    ],
+                    public_keys: [
+                        inputs.public_keys[vc.issuer_index]
+                    ],
+                    revocation_roots: [
+                        inputs.revocation_roots[iVC]
+                    ],
+                    proving_time: inputs.proving_time,
+                }
+                const proof = await program.prove(subInput, undefined, performanceStats);
+                proofs.push(proof);
+            }
+        }
+    }
+
+    let aggStat = aggregatePerformanceStats(performanceStats);
+    aggStat.name = "proveMulti";
+    stats!.push(aggStat);
+
+    return proofs;
+}
+
+async function verifyProofsForMultiConditions(inputs: any, proofs: MyProofData[], stats?: PerformanceStat[]): Promise<boolean> {
+    const predicates = inputs.criteria.predicates;
+    const options = getDefaultNoirProgramOptions();
+    const program = await NoirProgram.createProgram("mono_vcp_generation", options);
+
+    let validations = Array<boolean>();
+    let performanceStats = Array<PerformanceStat>();
+
+    for(let i = predicates.length - 1; i >= 0; i--) {
+        const left = i * 2 + 1;
+        const right = i * 2 + 1;
+        const inverseLeft = predicates.length - left - 1;
+        const inverseRight = predicates.length - right - 1;
+        // console.log(`i: ${i} - left=${left} - right=${right} - inverseLeft=${inverseLeft} - inverseRight=${inverseRight}`);
+
+        if (predicates[i] == 0) {
+            validations[i] = validations[inverseLeft] && validations[inverseRight];
+        } else if (predicates[i] == 1) {
+            validations[i] = validations[inverseLeft] || validations[inverseRight];
+        } else if (predicates[i] >= 2) {
+            // verify
+            const proof = proofs[predicates[i] - 2];
+            const verification = await program.verify(proof, undefined, performanceStats);
+            validations.push(verification);
+        } else {
+            throw new Error(`Predicate ${predicates[i]} is invalid`);
+        }
+
+        // console.log(predicates[i]);
+    }
+
+    let aggStat = aggregatePerformanceStats(performanceStats);
+    aggStat.name = "verifyMulti";
+    stats!.push(aggStat);
+
+    // console.log(validations[0]);
+    // throw new Error("");
+
+    return validations[0];
+}
+
+async function executeMultiProofMultiConditions(inputs: any): Promise<PerformanceStat[]> {
+    let performanceStats: PerformanceStat[] = [];
+
+    // generate proofs for each condition
+    console.time("prove");
+    const proofs = await generateProofsForMultiConditions(inputs, performanceStats);
+    console.timeEnd("prove");
+
+    // verify proofs according to predicates
+    console.time("verify");
+    const verification = await verifyProofsForMultiConditions(inputs, proofs, performanceStats);
+    console.timeEnd("verify");
+
+    console.dir(`off-chain verification: ${verification}`, { depth: null });
+
+    return performanceStats
+}
+
+async function writeExpData(expData: any[], name: string) {
+    const expDataPath = resolve(__dirname, "..", "reports", `${name}.json`);
+    fs.writeFileSync(expDataPath, JSON.stringify(expData));
+    console.log(`wrote exp data to ${expDataPath}`);
+}
+
+
+enum zkVCMode {
+    SingleProof = 0,
+    MultiProof,
+}
+
+enum ComparisonOperator {
+    Equal = 0,
+    NotEqual,
+    GreaterThan,
+    LessThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
+}
+
+async function evaluate(mode: zkVCMode) {
+    let expData = [];
+
+    const treeHeight = 32;
+    const numConditions = 2;
+    const numTrials = 1;
+
+    for (let trial = 0; trial < numTrials; trial++) {
+        MAX_SIBLINGS = treeHeight;
+
+        console.log(`Setting: treeHeight=${treeHeight} - numConditions=${numConditions} - trial=${trial}`);
+        const inputs = await generateTestInputs(numConditions);
+
+        let currentStats:PerformanceStat[];
+
+        if (mode == zkVCMode.SingleProof) {
+            currentStats = await executeSingleProofMultiConditions(inputs);
+        } else if (mode == zkVCMode.MultiProof) {
+            currentStats = await executeMultiProofMultiConditions(inputs);
+        } else {
+            throw new Error(`Unsupported execution mode: ${mode}`);
+
+        }
+
+        for (const stat of currentStats) {
+            expData.push({
+                ...stat,
+                trial: trial,
+                treeHeight: treeHeight,
+                numConditions: numConditions,
+            });
+        }
+    }
+
+    console.dir(expData, { depth: null });
+
+    await writeExpData(expData, `offchain-${treeHeight}-${numConditions}-${mode}`);
+}
+
+async function main() {
+    evaluate(zkVCMode.SingleProof);
 }
 
 main().catch((error) => {

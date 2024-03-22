@@ -20,7 +20,7 @@ function getCircuitDirPath(circuitName: string): string {
   return resolve(__dirname, "..", "circuits", circuitName);
 }
 
-class MyProofData {
+export class MyProofData {
   publicInputs: string[];
   proof: string;
 
@@ -86,17 +86,18 @@ function delay(time: number) {
   return new Promise(resolve => setTimeout(resolve, time));
 }
 
-type PerformanceStat = {
+export type PerformanceStat = {
+  name: string;
   executionTime: number;
   peakMemoryUsage: number;
   meanMemoryUsage: number;
   stdMemoryUsage: number;
 }
 
-async function executeAndMeasureStats(command: string, options: { cwd: string, debug: boolean, interval: number }): Promise<PerformanceStat> {
+async function executeAndMeasureStats(command: string, options: { cwd: string, debug: boolean, interval: number, commandName: string }): Promise<PerformanceStat> {
   const myChildProcess = childProcess.exec(command, { cwd: options.cwd });
 
-  console.log(`executing ${command}`);
+  // console.log(`executing ${command}`);
   let memoryUsages: number[] = [];
   let startTime = (new Date()).getTime();
 
@@ -107,9 +108,9 @@ async function executeAndMeasureStats(command: string, options: { cwd: string, d
 
       memoryUsages.push(temp.memory);
 
-      if (options.debug) {
-        console.log(temp);
-      }
+      // if (options.debug) {
+      //   console.log(temp);
+      // }
     } catch (error) {
       break;
     }
@@ -122,6 +123,7 @@ async function executeAndMeasureStats(command: string, options: { cwd: string, d
   let stdMemoryUsage = std(memoryUsages, "unbiased") as number;
 
   return {
+    name: options.commandName,
     executionTime: duration,
     peakMemoryUsage: maxMemoryUsage,
     meanMemoryUsage: meanMemoryUsage,
@@ -148,8 +150,6 @@ export class NoirProgram {
 
     const myProjectPath = getCircuitDirPath(circuitName);
 
-    console.log(myProjectPath)
-
     if (options!.isJSProving) {
       if (options!.compiled) {
         program.compiledCode = require(resolve(myProjectPath, "target", `${circuitName}.json`));
@@ -167,22 +167,41 @@ export class NoirProgram {
 
   public async proveNoirJS(inputData: any): Promise<ProofData> {
     const proof = await this.noir!.generateProof(inputData);
-
     return proof;
   }
 
-  public async prove(inputData: any, options?: NoirProgramOptions): Promise<MyProofData> {
+  public async proveCLI(inputData: any, options?: NoirProgramOptions, stats?: PerformanceStat[]): Promise<MyProofData> {
+    await this.generateInputs(inputData, options);
+    const circuitDirPath = getCircuitDirPath(this.name);
+    const command = `nargo prove --prover-name ${options?.proverName!}`;
+
+    // console.time("NoirProgram:proveCLI:prove");
+    const stat = await executeAndMeasureStats(command, { cwd: circuitDirPath, debug: false, interval: 1000, commandName: "proveCLI" });
+    // console.timeEnd("NoirProgram:proveCLI:prove");
+    // console.log("proving stats: ", stat);
+
+    // read the circuit proof
+    const proofFilePath = resolve(circuitDirPath, "proofs", `${this.name}.proof`);
+    const publicInputFilePath = resolve(circuitDirPath, `${options?.verifierName}.toml`);
+
+    stats!.push(stat);
+    return new Promise((resolve, reject) => {
+      resolve(MyProofData.fromFiles(proofFilePath, publicInputFilePath));
+    });
+  }
+
+  public async prove(inputData: any, options?: NoirProgramOptions, stats?: PerformanceStat[]): Promise<MyProofData> {
     if (options === undefined) {
       options = this.options;
     }
 
-    console.time("NoirProgram:prove");
+    // console.time("NoirProgram:prove");
     if (options!.isJSProving) {
       return MyProofData.fromNoirProofData(await this.proveNoirJS(inputData));
     } else {
-      return this.proveCLI(inputData, options);
+      return this.proveCLI(inputData, options, stats);
     }
-    console.timeEnd("NoirProgram:prove");
+    // console.timeEnd("NoirProgram:prove");
   }
 
   async verifyNoirJS(proofData: MyProofData): Promise<boolean> {
@@ -190,22 +209,24 @@ export class NoirProgram {
     return verification;
   }
 
-  async verifyCLI(proofData: MyProofData, options?: NoirProgramOptions): Promise<boolean> {
+  async verifyCLI(proofData: MyProofData, options?: NoirProgramOptions, stats?: PerformanceStat[]): Promise<boolean> {
     try {
       const circuitDirPath = getCircuitDirPath(this.name);
       const command = `nargo verify --verifier-name ${options?.verifierName!}`;
 
-      console.time("verifying");
-      const stats = await executeAndMeasureStats(command, { cwd: circuitDirPath, interval: 1000, debug: false });
-      console.timeEnd("verifying");
-      console.log("verifying stats: ", stats);
+      // console.time("verifying");
+      const stat = await executeAndMeasureStats(command, { cwd: circuitDirPath, interval: 1000, debug: false, commandName: "verifyCLI" });
+      // console.timeEnd("verifying");
+      // console.log("verifying stats: ", stat);
+
+      stats!.push(stat);
       return true;
     } catch (error) {
       return false;
     }
   }
 
-  public async verify(proofData: MyProofData, options?: NoirProgramOptions): Promise<boolean> {
+  public async verify(proofData: MyProofData, options?: NoirProgramOptions, stats?: PerformanceStat[]): Promise<boolean> {
     if (options === undefined) {
       options = this.options;
     }
@@ -213,32 +234,13 @@ export class NoirProgram {
     if (options!.isJSProving) {
       return this.verifyNoirJS(proofData);
     } else {
-      return this.verifyCLI(proofData, options);
+      return this.verifyCLI(proofData, options, stats);
     }
   }
 
   public async generateInputs(inputData: any, options?: NoirProgramOptions) {
     const inputPath = resolve(getCircuitDirPath(this.name), `${options?.proverName}.toml`);
     fs.writeFileSync(inputPath, toml.stringify(inputData));
-    console.log(`Generated input at ${inputPath}`);
-  }
-
-  public async proveCLI(inputData: any, options?: NoirProgramOptions): Promise<MyProofData> {
-    await this.generateInputs(inputData, options);
-    const circuitDirPath = getCircuitDirPath(this.name);
-    const command = `nargo prove --prover-name ${options?.proverName!}`;
-
-    console.time("NoirProgram:proveCLI:prove");
-    const stats = await executeAndMeasureStats(command, { cwd: circuitDirPath, debug: false, interval: 1000 });
-    console.timeEnd("NoirProgram:proveCLI:prove");
-    console.log("proving stats: ", stats);
-
-    // read the circuit proof
-    const proofFilePath = resolve(circuitDirPath, "proofs", `${this.name}.proof`);
-    const publicInputFilePath = resolve(circuitDirPath, `${options?.verifierName}.toml`);
-
-    return new Promise((resolve, reject) => {
-      resolve(MyProofData.fromFiles(proofFilePath, publicInputFilePath));
-    });
+    // console.log(`Generated input at ${inputPath}`);
   }
 }

@@ -1,8 +1,0 @@
-[package]
-name = "test_smtverifier_noir"
-type = "bin"
-authors = [""]
-compiler_version = ">=0.23.0"
-
-[dependencies]
-smt = { path="../libs/smtverifier_noir" }

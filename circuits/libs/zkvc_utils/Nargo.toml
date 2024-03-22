@@ -2,7 +2,7 @@
 name = "zkvc_utils"
 type = "lib"
 authors = ["Tu Hoang"]
-compiler_version = ">=0.23.0"
+compiler_version = ">=0.19.4"
 
 [dependencies]
 smt = { path="../smtverifier_noir" }
