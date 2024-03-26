@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use num_bigint::BigUint;
 use num_traits::Num;
 // use ark_ff::PrimeField;
@@ -9,11 +9,9 @@ use noir_rs::{
 };
 use serde_derive::Deserialize;
 use serde_json::Value;
-use std::{env, io::Write};
 use std::fs;
 use std::path::Path;
 use toml;
-use std::io;
 
 
 #[derive(Deserialize, Debug)]
@@ -98,9 +96,11 @@ fn convert_uint_to_field_element(number: u8) -> FieldElement {
 }
 
 fn get_circuit_directory(circuit_name: &str) -> Option<String> {
+    // println!("{:?}", std::env::current_dir());
+
     match circuit_name {
         "vcp_generation" | "mono_vcp_generation" => {
-            let path = Path::new("..").join("circuits").join(circuit_name);
+            let path = std::env::current_dir().unwrap().join("circuits").join(circuit_name);
             // println!("{:?}", &path);
 
             return Some(String::from(path.to_str().unwrap()));
@@ -230,6 +230,7 @@ fn build_witness(input: Input, compiled_program: &Value) -> WitnessMap {
         } else if key == "credentials" {
             let credentials = &input.credentials;
             let mut current_index = temp[0]["start"].as_u64().unwrap() as u32;
+            // println!("{:?}", current_index);
 
             for index in 0..credentials.len() {
                 let credential = &credentials[index];
@@ -241,7 +242,14 @@ fn build_witness(input: Input, compiled_program: &Value) -> WitnessMap {
                 let expired_date_index = claim_start_index + num_claims * 2;
                 let signature_index = expired_date_index + 1;
                 let non_revocation_proof_index = signature_index + 3;
-                let issuer_index = non_revocation_proof_index + 34;
+                let issuer_index = non_revocation_proof_index + num_siblings as u32 + 2;
+
+                // println!("subject_index {:?}", subject_index);
+                // println!("claim_start_index {:?}", claim_start_index);
+                // println!("expired_date_index {:?}", expired_date_index);
+                // println!("signature_index {:?}", signature_index);
+                // println!("non_revocation_proof_index {:?}", non_revocation_proof_index);
+                // println!("issuer_index {:?}", issuer_index);
 
                 initial_witness.insert(
                     Witness(subject_index),
@@ -293,14 +301,17 @@ fn build_witness(input: Input, compiled_program: &Value) -> WitnessMap {
                         Witness(non_revocation_proof_index + j as u32),
                         convert_hex_to_field_element(&sibling).expect("Cannot convert sibling"),
                     );
+                    // println!("{:?}", non_revocation_proof_index + j as u32);
                 }
 
+                // println!("old item {:?}", non_revocation_proof_index + num_siblings as u32);
                 initial_witness.insert(
                     Witness(non_revocation_proof_index + num_siblings as u32),
                     convert_hex_to_field_element(&non_revocation_proof.old_item)
                         .expect("Cannot convert proof old item"),
                 );
 
+                // println!("is_old_0 {:?}", non_revocation_proof_index + num_siblings as u32 + 1);
                 initial_witness.insert(
                     Witness(non_revocation_proof_index + num_siblings as u32 + 1),
                     convert_uint_to_field_element(non_revocation_proof.is_old_0),
@@ -311,7 +322,7 @@ fn build_witness(input: Input, compiled_program: &Value) -> WitnessMap {
                     convert_uint_to_field_element(credential.issuer_index),
                 );
 
-                current_index = current_index + 6 + 34 + 2 * num_claims;
+                current_index = issuer_index + 1;
             }
         }
     }
@@ -372,7 +383,7 @@ struct Args {
     mode: String,
 }
 
-fn main() {
+fn main()-> Result<(), String> {
     let args = Args::parse();
     println!("{:?}", &args);
     let circuit_name = args.circuit;
@@ -397,6 +408,8 @@ fn main() {
             // println!("vk={:?}", vk);
             // save proof and vk
             let _ = save_proof_and_vk(&circuit_directory, proof, vk);
+
+            return Ok(());
         },
         "verify" => {
             println!("Verifying proof...");
@@ -408,7 +421,16 @@ fn main() {
             assert!(verdict);
             println!("Proof correct");
 
+            if verdict == true {
+                return Ok(());
+            } else {
+                return Err(String::from("False"));
+            }
+
         },
-        _ => println!("Invalid mode: {:?}", mode),
+        _ => {
+            println!("Invalid mode: {:?}", mode);
+            return Err(String::from("Invalid mode"));
+        },
     }
 }

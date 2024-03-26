@@ -250,7 +250,7 @@ async function generateMerkleTreeProofSMT254() {
     const options: NoirProgramOptions = {
         threads: 8,
         compiled: false,
-        isJSProving: false,
+        runningClient: false,
         proverName: "Prover",
         verifierName: "Verifier",
     }
@@ -351,7 +351,7 @@ async function generateMerkleTreeProofSMTVerifier() {
     const options: NoirProgramOptions = {
         threads: 8,
         compiled: false,
-        isJSProving: false,
+        runningClient: false,
         proverName: "Prover",
         verifierName: "Verifier",
     }

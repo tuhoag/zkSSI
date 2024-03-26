@@ -5,7 +5,7 @@ use dep::zkvc::{AccessControlCriteria, UnifiedCredential, Condition, Credential,
 
 
 global MAX_CLAIMS = 1;
-
+global MAX_CONDITION_ISSUERS = 1;
 
 // 1 CONDITION
 global MAX_CONDITIONS = 1;
@@ -37,10 +37,10 @@ global MAX_ISSUERS = 1;
 // global MAX_ISSUERS = 1;
 // global MAX_PREDICATES = 3;
 
-global MAX_SIBLINGS = 32;
+global MAX_SIBLINGS = 24;
 
 fn main(
-    criteria: AccessControlCriteria<MAX_CONDITIONS,MAX_ISSUERS,MAX_PREDICATES>,
+    criteria: pub AccessControlCriteria<MAX_CONDITIONS,MAX_CONDITION_ISSUERS,MAX_PREDICATES>,
     credentials: [Credential<MAX_CLAIMS,MAX_SIBLINGS>; MAX_CREDENTIALS],
     public_keys: pub [Issuer; MAX_ISSUERS],
     proving_time: pub u8,
@@ -56,6 +56,7 @@ fn main(
 
     for i in 0..MAX_CONDITIONS {
         assert(condition_validations[i] == true);
-
     }
+
+    // assert(1==0);
 }

@@ -36,7 +36,7 @@ import ZKVCModule from "../ignition/modules/zkvc";
 import { NoirProgram, NoirProgramOptions, getDefaultNoirProgramOptions } from "./utils";
 import { bigIntToHex } from "@nomicfoundation/ethereumjs-util";
 import exp from "constants";
-import { createSMT as createSparseMerkleTree } from "./circom_smt_utils";
+import { createSMT as createSparseMerkleTree } from "./util/circom_smt_utils";
 import { hexToBigInt } from "viem";
 
 async function main() {

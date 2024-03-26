@@ -1,1 +1,0 @@
-[{"name":"proveCLI","executionTime":29114,"peakMemoryUsage":3759718400,"meanMemoryUsage":1870503936,"stdMemoryUsage":743233995.6349252,"trial":0,"treeHeight":32,"numConditions":2},{"name":"verifyCLI","executionTime":21076,"peakMemoryUsage":567279616,"meanMemoryUsage":470217523.2,"stdMemoryUsage":46836282.7679208,"trial":0,"treeHeight":32,"numConditions":2}]

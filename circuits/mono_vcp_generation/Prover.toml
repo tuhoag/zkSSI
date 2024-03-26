@@ -6,7 +6,7 @@ predicates = [ 2 ]
 
   [[criteria.conditions]]
   attr_code = "0x62697274685f646179"
-  operator = "> "
+  operator = 2
   value = 10
   issuer_codes = [ "0x6973737565723031" ]
 
@@ -51,18 +51,10 @@ issuer_index = 0
   "0x0",
   "0x0",
   "0x0",
-  "0x0",
-  "0x0",
-  "0x0",
-  "0x0",
-  "0x0",
-  "0x0",
-  "0x0",
-  "0x0",
   "0x0"
 ]
   old_item = "0x0"
-  is_old_0 = "0x1"
+  is_old_0 = 1
 
 [[public_keys]]
 issuer_code = "0x6973737565723031"

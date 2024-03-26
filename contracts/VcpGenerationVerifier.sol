@@ -1,72 +1,72 @@
-// Verification Key Hash: e0bb11b425a8a2ed6b0c93975b823d48841e2c0f9cab379c68639679fa0e2422
+// Verification Key Hash: a0475a94baff8cce556e9dd586ed95b6c58d29d378280cb367d6fb381c3fd990
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2022 Aztec
 pragma solidity >=0.8.4;
 
 library UltraVerificationKey {
     function verificationKeyHash() internal pure returns(bytes32) {
-        return 0xe0bb11b425a8a2ed6b0c93975b823d48841e2c0f9cab379c68639679fa0e2422;
+        return 0xa0475a94baff8cce556e9dd586ed95b6c58d29d378280cb367d6fb381c3fd990;
     }
 
     function loadVerificationKey(uint256 _vk, uint256 _omegaInverseLoc) internal pure {
         assembly {
-            mstore(add(_vk, 0x00), 0x0000000000000000000000000000000000000000000000000000000000080000) // vk.circuit_size
-            mstore(add(_vk, 0x20), 0x0000000000000000000000000000000000000000000000000000000000000001) // vk.num_inputs
-            mstore(add(_vk, 0x40), 0x2260e724844bca5251829353968e4915305258418357473a5c1d597f613f6cbd) // vk.work_root
-            mstore(add(_vk, 0x60), 0x3064486657634403844b0eac78ca882cfd284341fcb0615a15cfcd17b14d8201) // vk.domain_inverse
-            mstore(add(_vk, 0x80), 0x07c4b5184217b6619f697f99c09dcd3e36d6af6b01551704aa95bd6a62cb7a2a) // vk.Q1.x
-            mstore(add(_vk, 0xa0), 0x0988ff8eb022177e44bebaa7ed74b4eee6788ea757483cffad9caa97fe0a7c3f) // vk.Q1.y
-            mstore(add(_vk, 0xc0), 0x2a968a5d7b2b2f6eff8041927dc5ecc6a28cf3bd61c852cd82f73f4136a8dcef) // vk.Q2.x
-            mstore(add(_vk, 0xe0), 0x04cce08015677219ab7db1dcc8e3a6aa7af324276d2f5e8e84a6c842238b67c7) // vk.Q2.y
-            mstore(add(_vk, 0x100), 0x2d86c2ed200f11255fc2234927c2688567b1b8b6c184f2af72311b4ac7858b50) // vk.Q3.x
-            mstore(add(_vk, 0x120), 0x2934dcff863ea3a62efd5ff26ebc2033cd0e7db08ed6333d5d7ed97b29620b4c) // vk.Q3.y
-            mstore(add(_vk, 0x140), 0x1c077c590427eb972f3d4e564860572ddec1ca426f2fcbf81ebc3eb40f87e2f0) // vk.Q4.x
-            mstore(add(_vk, 0x160), 0x0b33b4e7a1d9be77346c06cae20474685b78923071a3720eead30abbd213b289) // vk.Q4.y
-            mstore(add(_vk, 0x180), 0x303dad768d2790aea3b391ecdff3a8b291ca73c0b7783ff77091b126c40d229a) // vk.Q_M.x
-            mstore(add(_vk, 0x1a0), 0x28d66241a6e6fe1b17cb79fca743880303f710cd3139b56ab7de4a8250928454) // vk.Q_M.y
-            mstore(add(_vk, 0x1c0), 0x09c616a2e6c942543b7526f2d787cac46d34d533d3ba3661a55b7c8a3ca8ba13) // vk.Q_C.x
-            mstore(add(_vk, 0x1e0), 0x2a825a3fa05bcd831f2d5be83129b51154c4cb893c01e50c358af3686774d992) // vk.Q_C.y
-            mstore(add(_vk, 0x200), 0x1faf4a12cd4765e1925b5e43af6081e7b9256a77ce1a6b69d4fd2baab57fdd2c) // vk.Q_ARITHMETIC.x
-            mstore(add(_vk, 0x220), 0x03085b30b538aa9a56399743cb4862339d33fbbec264d3118aa5d0f792ee9374) // vk.Q_ARITHMETIC.y
-            mstore(add(_vk, 0x240), 0x25d118a99eb8cac34cff02d85c7e9c81f9db027e846ad6e7ed2ed383a3c8b14b) // vk.QSORT.x
-            mstore(add(_vk, 0x260), 0x25d3600b54fcf6d72de80a69a73f54780d1bb5e8b31d2f0d14a3da73e10573e6) // vk.QSORT.y
-            mstore(add(_vk, 0x280), 0x0346eb76deee9a3ae7b350f402a778b1d6d269fccd2036db0ec5fe39439b1e9a) // vk.Q_ELLIPTIC.x
-            mstore(add(_vk, 0x2a0), 0x12b9c69aa4d51eb3920484e5f218388542023c239f7cb66db4175af241497622) // vk.Q_ELLIPTIC.y
-            mstore(add(_vk, 0x2c0), 0x17419818f05362964ce85b2aa44c84779740a549756441c242aa0ca2982da09f) // vk.Q_AUX.x
-            mstore(add(_vk, 0x2e0), 0x27ffb78084a10349fc6ada55e87200d8744b74207de535089f828fcd5deb6fd5) // vk.Q_AUX.y
-            mstore(add(_vk, 0x300), 0x14f7012cf0e55d3985a1b4526606932ed6a78b75aef87d42c8654a1eb256a6f8) // vk.SIGMA1.x
-            mstore(add(_vk, 0x320), 0x086d6dcf0c73029ece13358e85db0ce60a3a021fa5e53c56cb7518df27198e66) // vk.SIGMA1.y
-            mstore(add(_vk, 0x340), 0x28e8918f82b261533fd4b9d1c9dcb7bb5e134d3736d6d1243b230d10f4484d07) // vk.SIGMA2.x
-            mstore(add(_vk, 0x360), 0x2d915427a09637387bb51209357a5ce02cbde4e28f75574e548c678b5728968b) // vk.SIGMA2.y
-            mstore(add(_vk, 0x380), 0x11d4181cec74bc312caa9b5f2b6d1fbc41078c5dbaea36f9a1e160901ccd4840) // vk.SIGMA3.x
-            mstore(add(_vk, 0x3a0), 0x06adab51f2f63070c28aed6e1d8e4df575ed467c90332c780bf849b9592607ac) // vk.SIGMA3.y
-            mstore(add(_vk, 0x3c0), 0x29c8e45382e58fe3ed63d56e9d787602cbd7dd51c1f366a06e2c57dc060b8c31) // vk.SIGMA4.x
-            mstore(add(_vk, 0x3e0), 0x2505aa89a091f1ee98b2426389380c77340e1161dc11548c45913fbc5393e72f) // vk.SIGMA4.y
-            mstore(add(_vk, 0x400), 0x2c63e2b25ffe8e5a1ae2402c63cd8695b8c19c76ff188f0051aa809ed6529220) // vk.TABLE1.x
-            mstore(add(_vk, 0x420), 0x13cf7be538cb4f6e9038105512d97f33a4421fceae96e6c13e9be2bc6f24dcb2) // vk.TABLE1.y
-            mstore(add(_vk, 0x440), 0x1179770cb27081b0a54b01e64215851fd6a66ccca093a311e8d435ab9e9a9ac2) // vk.TABLE2.x
-            mstore(add(_vk, 0x460), 0x0185e404b42e4c8ff37b6db9f55594e6e8f67f8dd531b94c3046f93d01102410) // vk.TABLE2.y
-            mstore(add(_vk, 0x480), 0x1e78dddba65deaa391922acce9e01d4c8ec5acc18b20dc1176f523c6f97261dd) // vk.TABLE3.x
-            mstore(add(_vk, 0x4a0), 0x1df3a0e2d526e44204934081477d34077074420ef6411341d822bd76a2178423) // vk.TABLE3.y
-            mstore(add(_vk, 0x4c0), 0x054a8c6e1442f31e9520dd0645d1c7331e6b322e9e15304e5d97299b568174af) // vk.TABLE4.x
-            mstore(add(_vk, 0x4e0), 0x0884f57f4a72c77ae7d75c4e59a04d8bc98644a5fdaf367c0c4f89026c56ad22) // vk.TABLE4.y
-            mstore(add(_vk, 0x500), 0x0d9d6802a871985e487d30f13789d1a7b6efb3e7573da08f0f28b4211cb378d3) // vk.TABLE_TYPE.x
-            mstore(add(_vk, 0x520), 0x0c7e37df2bcd4d7b391c6a7bbe791654e985e1a290c61fcbf1ff5ba9f3d0e4ac) // vk.TABLE_TYPE.y
-            mstore(add(_vk, 0x540), 0x146da2a60bfebb3b802ccc4e37f021ba13b4af1f8177d8383dbfc2e6764b83da) // vk.ID1.x
-            mstore(add(_vk, 0x560), 0x21e44a0a0ca201d3d1593ed175f94318b8fb549c87b7f243cdb77e40559012f4) // vk.ID1.y
-            mstore(add(_vk, 0x580), 0x12a851f01f0937534c654a29ecbc1336ddad9cb1255d602d9ac3f492dc82b2cd) // vk.ID2.x
-            mstore(add(_vk, 0x5a0), 0x25aeb4cdf0bb4ba2cbbf7607258f56ecdeedffcc81d4d2efeb85567f120f819c) // vk.ID2.y
-            mstore(add(_vk, 0x5c0), 0x1f3775210b7490f62b44f6c9376568e5bbf8dd37d6f48c683a0eb8d164abdcb0) // vk.ID3.x
-            mstore(add(_vk, 0x5e0), 0x0d44d8fd0fe44c18e569865e8dda326e0db6aea21761878620093d8c7072b19d) // vk.ID3.y
-            mstore(add(_vk, 0x600), 0x05e6ac59ea189cca22a6d704116eb99319650e1a0653ff3b8a67cfe6755037a4) // vk.ID4.x
-            mstore(add(_vk, 0x620), 0x199e86a8dc2b7ede52574bbbef794d2723debb4b17158db1b6438c6a28455da5) // vk.ID4.y
+            mstore(add(_vk, 0x00), 0x0000000000000000000000000000000000000000000000000000000000020000) // vk.circuit_size
+            mstore(add(_vk, 0x20), 0x000000000000000000000000000000000000000000000000000000000000000a) // vk.num_inputs
+            mstore(add(_vk, 0x40), 0x1bf82deba7d74902c3708cc6e70e61f30512eca95655210e276e5858ce8f58e5) // vk.work_root
+            mstore(add(_vk, 0x60), 0x30643640b9f82f90e83b698e5ea6179c7c05542e859533b48b9953a2f5360801) // vk.domain_inverse
+            mstore(add(_vk, 0x80), 0x175afb51ada431c69301bd9ddcb178a72eca64562dd8ebb7105c5e58259a72ed) // vk.Q1.x
+            mstore(add(_vk, 0xa0), 0x1658e32b31445a220dd4e0ea4f64829741746f8153b9f98f627129d5a921948b) // vk.Q1.y
+            mstore(add(_vk, 0xc0), 0x27c0e257d41466580af1341f676b3da47ec9b4c2fc9ff54c871d03d9d9548f2c) // vk.Q2.x
+            mstore(add(_vk, 0xe0), 0x291b73bbe221c52914d0f956fe49d60a7c34631833e36bccb5b75c41e9999d50) // vk.Q2.y
+            mstore(add(_vk, 0x100), 0x175605d14ae72ee4ab23cc2ca26222589caf3f8ee13193e9ac0b7d9ae00e2c32) // vk.Q3.x
+            mstore(add(_vk, 0x120), 0x2704d5848290cd9135d1be596685c3eec98e2979057746fcab41026deccf9da3) // vk.Q3.y
+            mstore(add(_vk, 0x140), 0x0bc8731a389b831856bca56d56a7a5ce7c01aa5fd8b5d8a8fc3725081628b4a0) // vk.Q4.x
+            mstore(add(_vk, 0x160), 0x15adb5e6434a3bc9d2172ce57bc3f918e4f7934d7165db8d5784455c951c6b6b) // vk.Q4.y
+            mstore(add(_vk, 0x180), 0x29026331fbd31731eca3ba576bddeb48ce4aa3992b97ac9137bc6aed8a40dc9d) // vk.Q_M.x
+            mstore(add(_vk, 0x1a0), 0x0681b0c2ef18bfd59311fcb2fd421ebb7d616c5c122c642520ba015837c93d4e) // vk.Q_M.y
+            mstore(add(_vk, 0x1c0), 0x150c2fbd0e5e4aee49a396d75c2466d7474b7fbeb01f582ff6c897c544856509) // vk.Q_C.x
+            mstore(add(_vk, 0x1e0), 0x1cf03d72bfe1468a7d6fc6044359ff117d3bccfe1c13c2366637b91c2a44c5bc) // vk.Q_C.y
+            mstore(add(_vk, 0x200), 0x260c0fd50aaa4e993ad19b63ab137f90b15d44231019d25f2df624ab925ddb1a) // vk.Q_ARITHMETIC.x
+            mstore(add(_vk, 0x220), 0x26a9ed2f870357156fe246fea18f84cfcdd9be948762ccee1569fc8e12f633fe) // vk.Q_ARITHMETIC.y
+            mstore(add(_vk, 0x240), 0x232ad0eb88f779dee59ae94209cc12a97f8c6418b8198cbbc6d485a7d7df9bcf) // vk.QSORT.x
+            mstore(add(_vk, 0x260), 0x2b9a5f79be0dbf49febfcb69eef2aec5fea956c3971eb15ff611bd3bbdb87230) // vk.QSORT.y
+            mstore(add(_vk, 0x280), 0x28b955aac4c043cbcfde06eee59b44363f96fe0a6fa93b0b36ef07fbe285d4c7) // vk.Q_ELLIPTIC.x
+            mstore(add(_vk, 0x2a0), 0x16e1bbb0a7728dcb7696fdf3361b39510c6a4f83cc2159f5fc65ceb2be0599f9) // vk.Q_ELLIPTIC.y
+            mstore(add(_vk, 0x2c0), 0x24324b48ff9dc6f8a4c3a48bb9a9c97b01ff65d965317d6f7ef16e387bc0e92d) // vk.Q_AUX.x
+            mstore(add(_vk, 0x2e0), 0x2f8e101919ac32ca10532d0089b65ab8f6d6f11a1c6e8dc86b94d90ad964257a) // vk.Q_AUX.y
+            mstore(add(_vk, 0x300), 0x10f3bce3b5dd02caadd89ded199da24412336bd2f5b110f63ebfb5068699a4cb) // vk.SIGMA1.x
+            mstore(add(_vk, 0x320), 0x12f5af35091bf8dd2a0c59fe292e2a2dc10faefc4dc18195a298f6a81b60714d) // vk.SIGMA1.y
+            mstore(add(_vk, 0x340), 0x07dfb989a32a6a83edee9a91c6a1eaef71b0cdc01e1fcdb53e9f5ef7dd50e3b0) // vk.SIGMA2.x
+            mstore(add(_vk, 0x360), 0x1caf21eda76a8135cb2fe0861997227b908091e0c98e0773aa62206c8d222148) // vk.SIGMA2.y
+            mstore(add(_vk, 0x380), 0x014697e680ed1361be1a5854c95fe96936a5280ed4c529380f47525360e45604) // vk.SIGMA3.x
+            mstore(add(_vk, 0x3a0), 0x13838f456e6ba482c5d8bd00e78da2465886ef17f516e8238b7f06e55bc28932) // vk.SIGMA3.y
+            mstore(add(_vk, 0x3c0), 0x2f5852bc197eea7e10e24b9b370348c40271415a36d0531c5d2d5c4ce43059d4) // vk.SIGMA4.x
+            mstore(add(_vk, 0x3e0), 0x11cf3c8386d3061f7b0b235bd1520281597e7715590013f5cefec48ee94e977b) // vk.SIGMA4.y
+            mstore(add(_vk, 0x400), 0x0153cf448ba93b36fb1a3e334bf985bb0e7f671d7ca657c2510b8b64fc1390ea) // vk.TABLE1.x
+            mstore(add(_vk, 0x420), 0x0652d5f62437967a51f7f604f8274bd2d3b946ce89c72e43d52520c3964218ea) // vk.TABLE1.y
+            mstore(add(_vk, 0x440), 0x007fc1b76eaddd115bf2b07aa9de92811a55b0e5fd5ff8ae0c9dc2d3dc12cc74) // vk.TABLE2.x
+            mstore(add(_vk, 0x460), 0x2b0360fd5e0824f832aef7327db2d2ef03f7ebde15daf8ec220a994226945ae4) // vk.TABLE2.y
+            mstore(add(_vk, 0x480), 0x0b7f2f921abdf05965e7e2e61ec35a51ef68d0289e22322f7762acba675c1719) // vk.TABLE3.x
+            mstore(add(_vk, 0x4a0), 0x0166014fbfd0b94710674e2dfe3e12c7afaa55282cd731d68a7487d569b92a5f) // vk.TABLE3.y
+            mstore(add(_vk, 0x4c0), 0x09ec9b0aca4e9671903e0577f2a4efd36f7a58af0a5102f5a42e1b8061f62421) // vk.TABLE4.x
+            mstore(add(_vk, 0x4e0), 0x15affeadf66c8428f4f44d2ebe66e9dc0f04215bef81efbbee166d3f4544feab) // vk.TABLE4.y
+            mstore(add(_vk, 0x500), 0x26a2ae78e18252e62bac5d79b06980e449f06df78d0337d182828e5dff38e9ac) // vk.TABLE_TYPE.x
+            mstore(add(_vk, 0x520), 0x0e9696af73a4a8e82eb265eb8f216b69f718c83edc92739c99729c14e50ca9ef) // vk.TABLE_TYPE.y
+            mstore(add(_vk, 0x540), 0x2a186051151a8911c432157c68c18e66334617804c7a4a19c1c082bc28a9d071) // vk.ID1.x
+            mstore(add(_vk, 0x560), 0x1fcc40235657b6cf50a1234ae404e0d04fdd8918b9b6f7466c9df1271505fea7) // vk.ID1.y
+            mstore(add(_vk, 0x580), 0x2ff4dd9b6d5b740ff4fb8fdb696c1d4fcf5bab448112ec81f163395e25875cb8) // vk.ID2.x
+            mstore(add(_vk, 0x5a0), 0x0001cd73e1b45ea9d05c0855aedf71193f41adecea4b8faed5c920ea3a1b2d90) // vk.ID2.y
+            mstore(add(_vk, 0x5c0), 0x2b77ae3ad1f43eea352ace38975af74b063e762cc5e1f1e439c77b5519fc0eb8) // vk.ID3.x
+            mstore(add(_vk, 0x5e0), 0x22a69e0ce5ee1a44424bf2716dbd5be0f67aeea152e56679638dd33b69085a54) // vk.ID3.y
+            mstore(add(_vk, 0x600), 0x24de356a0101ee2ffc515a6c6bf35dc3ddcf10c10cebb55b9a6fd8c024e66614) // vk.ID4.x
+            mstore(add(_vk, 0x620), 0x16e3cb0d13eb6d258fb7cc0ca335c4e4e10dc62a5e055dd29767533d0701590b) // vk.ID4.y
             mstore(add(_vk, 0x640), 0x00) // vk.contains_recursive_proof
             mstore(add(_vk, 0x660), 0) // vk.recursive_proof_public_input_indices
             mstore(add(_vk, 0x680), 0x260e01b251f6f1c7e7ff4e580791dee8ea51d87a358e038b4efe30fac09383c1) // vk.g2_x.X.c1 
             mstore(add(_vk, 0x6a0), 0x0118c4d5b837bcc2bc89b5b398b5974e9f5944073b32078b7e231fec938883b0) // vk.g2_x.X.c0 
             mstore(add(_vk, 0x6c0), 0x04fc6369f7110fe3d25156c1bb9a72859cf2a04641f99ba4ee413c80da6a5fe4) // vk.g2_x.Y.c1 
             mstore(add(_vk, 0x6e0), 0x22febda3c0c0632a56475b4214e5615e11e6dd3f96e6cea2854a87d4dacc5e55) // vk.g2_x.Y.c0 
-            mstore(_omegaInverseLoc, 0x06e402c0a314fb67a15cf806664ae1b722dbc0efe66e6c81d98f9924ca535321) // vk.work_root_inverse
+            mstore(_omegaInverseLoc, 0x244cf010c43ca87237d8b00bf9dd50c4c01c7f086bd4e8c920e75251d96f0d22) // vk.work_root_inverse
         }
     }
 }
@@ -284,56 +284,49 @@ abstract contract BaseUltraVerifier {
     uint256 internal constant PAIRING_RHS_X_LOC = 0x3220;
     uint256 internal constant PAIRING_RHS_Y_LOC = 0x3240;
 
-    // ### SUCCESS FLAG MEMORY LOCATIONS
-    uint256 internal constant GRAND_PRODUCT_SUCCESS_FLAG = 0x3300;
-    uint256 internal constant ARITHMETIC_TERM_SUCCESS_FLAG = 0x3020;
-    uint256 internal constant BATCH_OPENING_SUCCESS_FLAG = 0x3340;
-    uint256 internal constant OPENING_COMMITMENT_SUCCESS_FLAG = 0x3360;
-    uint256 internal constant PAIRING_PREAMBLE_SUCCESS_FLAG = 0x3380;
-    uint256 internal constant PAIRING_SUCCESS_FLAG = 0x33a0;
-    uint256 internal constant RESULT_FLAG = 0x33c0;
-
     // misc stuff
-    uint256 internal constant OMEGA_INVERSE_LOC = 0x3400;
-    uint256 internal constant C_ALPHA_SQR_LOC = 0x3420;
-    uint256 internal constant C_ALPHA_CUBE_LOC = 0x3440;
-    uint256 internal constant C_ALPHA_QUAD_LOC = 0x3460;
-    uint256 internal constant C_ALPHA_BASE_LOC = 0x3480;
+    uint256 internal constant OMEGA_INVERSE_LOC = 0x3300;
+    uint256 internal constant C_ALPHA_SQR_LOC = 0x3320;
+    uint256 internal constant C_ALPHA_CUBE_LOC = 0x3340;
+    uint256 internal constant C_ALPHA_QUAD_LOC = 0x3360;
+    uint256 internal constant C_ALPHA_BASE_LOC = 0x3380;
 
     // ### RECURSION VARIABLE MEMORY LOCATIONS
-    uint256 internal constant RECURSIVE_P1_X_LOC = 0x3500;
-    uint256 internal constant RECURSIVE_P1_Y_LOC = 0x3520;
-    uint256 internal constant RECURSIVE_P2_X_LOC = 0x3540;
-    uint256 internal constant RECURSIVE_P2_Y_LOC = 0x3560;
-
-    uint256 internal constant PUBLIC_INPUTS_HASH_LOCATION = 0x3580;
+    uint256 internal constant RECURSIVE_P1_X_LOC = 0x3400;
+    uint256 internal constant RECURSIVE_P1_Y_LOC = 0x3420;
+    uint256 internal constant RECURSIVE_P2_X_LOC = 0x3440;
+    uint256 internal constant RECURSIVE_P2_Y_LOC = 0x3460;
+    uint256 internal constant PUBLIC_INPUTS_HASH_LOCATION = 0x3480;
 
     // sub-identity storage
-    uint256 internal constant PERMUTATION_IDENTITY = 0x3600;
-    uint256 internal constant PLOOKUP_IDENTITY = 0x3620;
-    uint256 internal constant ARITHMETIC_IDENTITY = 0x3640;
-    uint256 internal constant SORT_IDENTITY = 0x3660;
-    uint256 internal constant ELLIPTIC_IDENTITY = 0x3680;
-    uint256 internal constant AUX_IDENTITY = 0x36a0;
-    uint256 internal constant AUX_NON_NATIVE_FIELD_EVALUATION = 0x36c0;
-    uint256 internal constant AUX_LIMB_ACCUMULATOR_EVALUATION = 0x36e0;
-    uint256 internal constant AUX_RAM_CONSISTENCY_EVALUATION = 0x3700;
-    uint256 internal constant AUX_ROM_CONSISTENCY_EVALUATION = 0x3720;
-    uint256 internal constant AUX_MEMORY_EVALUATION = 0x3740;
+    uint256 internal constant PERMUTATION_IDENTITY = 0x3500;
+    uint256 internal constant PLOOKUP_IDENTITY = 0x3520;
+    uint256 internal constant ARITHMETIC_IDENTITY = 0x3540;
+    uint256 internal constant SORT_IDENTITY = 0x3560;
+    uint256 internal constant ELLIPTIC_IDENTITY = 0x3580;
+    uint256 internal constant AUX_IDENTITY = 0x35a0;
+    uint256 internal constant AUX_NON_NATIVE_FIELD_EVALUATION = 0x35c0;
+    uint256 internal constant AUX_LIMB_ACCUMULATOR_EVALUATION = 0x35e0;
+    uint256 internal constant AUX_RAM_CONSISTENCY_EVALUATION = 0x3600;
+    uint256 internal constant AUX_ROM_CONSISTENCY_EVALUATION = 0x3620;
+    uint256 internal constant AUX_MEMORY_EVALUATION = 0x3640;
 
-    uint256 internal constant QUOTIENT_EVAL_LOC = 0x3760;
-    uint256 internal constant ZERO_POLY_INVERSE_LOC = 0x3780;
+    uint256 internal constant QUOTIENT_EVAL_LOC = 0x3660;
+    uint256 internal constant ZERO_POLY_INVERSE_LOC = 0x3680;
 
     // when hashing public inputs we use memory at NU_CHALLENGE_INPUT_LOC_A, as the hash input size is unknown at compile time
-    uint256 internal constant NU_CHALLENGE_INPUT_LOC_A = 0x37a0;
-    uint256 internal constant NU_CHALLENGE_INPUT_LOC_B = 0x37c0;
-    uint256 internal constant NU_CHALLENGE_INPUT_LOC_C = 0x37e0;
+    uint256 internal constant NU_CHALLENGE_INPUT_LOC_A = 0x36a0;
+    uint256 internal constant NU_CHALLENGE_INPUT_LOC_B = 0x36c0;
+    uint256 internal constant NU_CHALLENGE_INPUT_LOC_C = 0x36e0;
 
+    bytes4 internal constant INVALID_VERIFICATION_KEY_SELECTOR = 0x7e5769bf;
+    bytes4 internal constant POINT_NOT_ON_CURVE_SELECTOR = 0xa3dad654;
     bytes4 internal constant PUBLIC_INPUT_INVALID_BN128_G1_POINT_SELECTOR = 0xeba9f4a6;
     bytes4 internal constant PUBLIC_INPUT_GE_P_SELECTOR = 0x374a972f;
     bytes4 internal constant MOD_EXP_FAILURE_SELECTOR = 0xf894a7bc;
-    bytes4 internal constant EC_SCALAR_MUL_FAILURE_SELECTOR = 0xf755f369;
-    bytes4 internal constant PROOF_FAILURE_SELECTOR = 0x0711fcec;
+    bytes4 internal constant PAIRING_PREAMBLE_FAILED_SELECTOR = 0x01882d81;
+    bytes4 internal constant OPENING_COMMITMENT_FAILED_SELECTOR = 0x4e719763;
+    bytes4 internal constant PAIRING_FAILED_SELECTOR = 0xd71fd263;
 
     uint256 internal constant ETA_INPUT_LENGTH = 0xc0; // W1, W2, W3 = 6 * 0x20 bytes
 
@@ -357,16 +350,226 @@ abstract contract BaseUltraVerifier {
     // y^2 = x^3 + ax + b
     // for Grumpkin, a = 0 and b = -17. We use b in a custom gate relation that evaluates elliptic curve arithmetic
     uint256 internal constant GRUMPKIN_CURVE_B_PARAMETER_NEGATED = 17;
+
+    error INVALID_VERIFICATION_KEY();
+    error POINT_NOT_ON_CURVE();
     error PUBLIC_INPUT_COUNT_INVALID(uint256 expected, uint256 actual);
     error PUBLIC_INPUT_INVALID_BN128_G1_POINT();
     error PUBLIC_INPUT_GE_P();
     error MOD_EXP_FAILURE();
-    error EC_SCALAR_MUL_FAILURE();
-    error PROOF_FAILURE();
+    error PAIRING_PREAMBLE_FAILED();
+    error OPENING_COMMITMENT_FAILED();
+    error PAIRING_FAILED();
 
     function getVerificationKeyHash() public pure virtual returns (bytes32);
 
+    /**
+     * @dev We assume that the verification key loaded by this function is constant as we only verify it on deployment
+     */
     function loadVerificationKey(uint256 _vk, uint256 _omegaInverseLoc) internal pure virtual;
+
+    constructor() { 
+        loadVerificationKey(N_LOC, OMEGA_INVERSE_LOC);
+
+        // We verify that all of the EC points in the verification key lie on the bn128 curve. 
+        assembly {
+            let q := 21888242871839275222246405745257275088696311157297823662689037894645226208583 // EC group order
+
+            let success := 1
+
+            // VALIDATE Q1
+            {
+                let x := mload(Q1_X_LOC)
+                let y := mload(Q1_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE Q2
+            {
+                let x := mload(Q2_X_LOC)
+                let y := mload(Q2_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE Q3
+            {
+                let x := mload(Q3_X_LOC)
+                let y := mload(Q3_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE Q4
+            {
+                let x := mload(Q4_X_LOC)
+                let y := mload(Q4_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                mstore(0x00, x)
+                mstore(0x20, y)
+            }
+            // VALIDATE QM
+            {
+                let x := mload(QM_X_LOC)
+                let y := mload(QM_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE QC
+            {
+                let x := mload(QC_X_LOC)
+                let y := mload(QC_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE QARITH
+            {
+                let x := mload(QARITH_X_LOC)
+                let y := mload(QARITH_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE QSORT
+            {
+                let x := mload(QSORT_X_LOC)
+                let y := mload(QSORT_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE QELLIPTIC
+            {
+                let x := mload(QELLIPTIC_X_LOC)
+                let y := mload(QELLIPTIC_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE QAUX
+            {
+                let x := mload(QAUX_X_LOC)
+                let y := mload(QAUX_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE SIGMA1
+            {
+                let x := mload(SIGMA1_X_LOC)
+                let y := mload(SIGMA1_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE SIGMA2
+            {
+                let x := mload(SIGMA2_X_LOC)
+                let y := mload(SIGMA2_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE SIGMA3
+            {
+                let x := mload(SIGMA3_X_LOC)
+                let y := mload(SIGMA3_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE SIGMA4
+            {
+                let x := mload(SIGMA4_X_LOC)
+                let y := mload(SIGMA4_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE TABLE1
+            {
+                let x := mload(TABLE1_X_LOC)
+                let y := mload(TABLE1_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            } 
+            // VALIDATE TABLE2
+            {
+                let x := mload(TABLE2_X_LOC)
+                let y := mload(TABLE2_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            } 
+            // VALIDATE TABLE3
+            {
+                let x := mload(TABLE3_X_LOC)
+                let y := mload(TABLE3_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            } 
+            // VALIDATE TABLE4
+            {
+                let x := mload(TABLE4_X_LOC)
+                let y := mload(TABLE4_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            } 
+            // VALIDATE TABLE_TYPE
+            {
+                let x := mload(TABLE_TYPE_X_LOC)
+                let y := mload(TABLE_TYPE_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE ID1
+            {
+                let x := mload(ID1_X_LOC)
+                let y := mload(ID1_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE ID2
+            {
+                let x := mload(ID2_X_LOC)
+                let y := mload(ID2_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE ID3
+            {
+                let x := mload(ID3_X_LOC)
+                let y := mload(ID3_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+            // VALIDATE ID4
+            {
+                let x := mload(ID4_X_LOC)
+                let y := mload(ID4_Y_LOC)
+                let xx := mulmod(x, x, q)
+                // validate on curve
+                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+            }
+
+            if iszero(success) {
+                mstore(0x0, INVALID_VERIFICATION_KEY_SELECTOR)
+                revert(0x00, 0x04)
+            }
+        }
+    }
 
     /**
      * @notice Verify a Ultra Plonk proof
@@ -1786,7 +1989,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(T1_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(ACCUMULATOR_X_LOC, x)
                 mstore(add(ACCUMULATOR_X_LOC, 0x20), y)
             }
@@ -1796,13 +2002,16 @@ abstract contract BaseUltraVerifier {
                 let y := mload(T2_Y_LOC) // 0x1420
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
             mstore(0x40, mload(ZETA_POW_N_LOC))
             // accumulator_2 = [T2].zeta^n
-            success := and(success, staticcall(gas(), 7, 0x00, 0x60, ACCUMULATOR2_X_LOC, 0x40))
+            success := staticcall(gas(), 7, 0x00, 0x60, ACCUMULATOR2_X_LOC, 0x40)
             // accumulator = [T1] + accumulator_2
             success := and(success, staticcall(gas(), 6, ACCUMULATOR_X_LOC, 0x80, ACCUMULATOR_X_LOC, 0x40))
 
@@ -1812,7 +2021,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(T3_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1828,7 +2040,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(T4_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1844,7 +2059,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(W1_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1860,7 +2078,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(W2_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1876,7 +2097,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(W3_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1892,7 +2116,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(W4_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1908,7 +2135,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(S_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1924,7 +2154,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(Z_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1940,7 +2173,10 @@ abstract contract BaseUltraVerifier {
                 let y := mload(Z_LOOKUP_Y_LOC)
                 let xx := mulmod(x, x, q)
                 // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                    mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                    revert(0x00, 0x04)
+                }
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1955,8 +2191,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(Q1_X_LOC)
                 let y := mload(Q1_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1971,8 +2206,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(Q2_X_LOC)
                 let y := mload(Q2_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -1987,8 +2221,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(Q3_X_LOC)
                 let y := mload(Q3_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2003,8 +2236,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(Q4_X_LOC)
                 let y := mload(Q4_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2019,8 +2251,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(QM_X_LOC)
                 let y := mload(QM_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2035,8 +2266,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(QC_X_LOC)
                 let y := mload(QC_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2051,8 +2281,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(QARITH_X_LOC)
                 let y := mload(QARITH_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2067,8 +2296,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(QSORT_X_LOC)
                 let y := mload(QSORT_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2083,8 +2311,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(QELLIPTIC_X_LOC)
                 let y := mload(QELLIPTIC_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2099,8 +2326,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(QAUX_X_LOC)
                 let y := mload(QAUX_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2115,8 +2341,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(SIGMA1_X_LOC)
                 let y := mload(SIGMA1_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2131,8 +2356,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(SIGMA2_X_LOC)
                 let y := mload(SIGMA2_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2147,8 +2371,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(SIGMA3_X_LOC)
                 let y := mload(SIGMA3_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2163,8 +2386,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(SIGMA4_X_LOC)
                 let y := mload(SIGMA4_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2179,8 +2401,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(TABLE1_X_LOC)
                 let y := mload(TABLE1_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2195,8 +2416,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(TABLE2_X_LOC)
                 let y := mload(TABLE2_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2211,8 +2431,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(TABLE3_X_LOC)
                 let y := mload(TABLE3_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2227,8 +2446,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(TABLE4_X_LOC)
                 let y := mload(TABLE4_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2243,8 +2461,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(TABLE_TYPE_X_LOC)
                 let y := mload(TABLE_TYPE_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2259,8 +2476,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(ID1_X_LOC)
                 let y := mload(ID1_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2275,8 +2491,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(ID2_X_LOC)
                 let y := mload(ID2_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2291,8 +2506,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(ID3_X_LOC)
                 let y := mload(ID3_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2307,8 +2521,7 @@ abstract contract BaseUltraVerifier {
                 let x := mload(ID4_X_LOC)
                 let y := mload(ID4_Y_LOC)
                 let xx := mulmod(x, x, q)
-                // validate on curve
-                success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                // Verification key fields verified to be on curve at contract deployment
                 mstore(0x00, x)
                 mstore(0x20, y)
             }
@@ -2496,7 +2709,10 @@ abstract contract BaseUltraVerifier {
                 // accumulator = accumulator + accumulator_2
                 success := and(success, staticcall(gas(), 6, ACCUMULATOR_X_LOC, 0x80, ACCUMULATOR_X_LOC, 0x40))
 
-                mstore(OPENING_COMMITMENT_SUCCESS_FLAG, success)
+                if iszero(success) {
+                    mstore(0x0, OPENING_COMMITMENT_FAILED_SELECTOR)
+                    revert(0x00, 0x04)
+                }
             }
 
             /**
@@ -2511,13 +2727,16 @@ abstract contract BaseUltraVerifier {
                     let y := mload(PI_Z_Y_LOC)
                     let xx := mulmod(x, x, q)
                     // validate on curve
-                    success := eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))
+                    if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                        mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                        revert(0x00, 0x04)
+                    }
                     mstore(0x00, x)
                     mstore(0x20, y)
                 }
                 // compute zeta.[PI_Z] and add into accumulator
                 mstore(0x40, zeta)
-                success := and(success, staticcall(gas(), 7, 0x00, 0x60, ACCUMULATOR2_X_LOC, 0x40))
+                success := staticcall(gas(), 7, 0x00, 0x60, ACCUMULATOR2_X_LOC, 0x40)
                 // accumulator = accumulator + accumulator_2
                 success := and(success, staticcall(gas(), 6, ACCUMULATOR_X_LOC, 0x80, ACCUMULATOR_X_LOC, 0x40))
 
@@ -2527,7 +2746,10 @@ abstract contract BaseUltraVerifier {
                     let y := mload(PI_Z_OMEGA_Y_LOC)
                     let xx := mulmod(x, x, q)
                     // validate on curve
-                    success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                    if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                        mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                        revert(0x00, 0x04)
+                    }
                     mstore(0x00, x)
                     mstore(0x20, y)
                 }
@@ -2555,7 +2777,10 @@ abstract contract BaseUltraVerifier {
                         let y := mload(RECURSIVE_P1_Y_LOC)
                         let xx := mulmod(x, x, q)
                         // validate on curve
-                        success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                        if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                            mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                            revert(0x00, 0x04)
+                        }
                         mstore(0x00, x)
                         mstore(0x20, y)
                     }
@@ -2569,7 +2794,10 @@ abstract contract BaseUltraVerifier {
                         let y := mload(RECURSIVE_P2_Y_LOC)
                         let xx := mulmod(x, x, q)
                         // validate on curve
-                        success := and(success, eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q)))
+                        if iszero(eq(mulmod(y, y, q), addmod(mulmod(x, xx, q), 3, q))) {
+                            mstore(0x0, POINT_NOT_ON_CURVE_SELECTOR)
+                            revert(0x00, 0x04)
+                        }
                         mstore(0x00, x)
                         mstore(0x20, y)
                     }
@@ -2589,10 +2817,9 @@ abstract contract BaseUltraVerifier {
                 }
 
                 if iszero(success) {
-                    mstore(0x0, EC_SCALAR_MUL_FAILURE_SELECTOR)
+                    mstore(0x0, PAIRING_PREAMBLE_FAILED_SELECTOR)
                     revert(0x00, 0x04)
                 }
-                mstore(PAIRING_PREAMBLE_SUCCESS_FLAG, success)
             }
 
             /**
@@ -2617,18 +2844,12 @@ abstract contract BaseUltraVerifier {
                 mstore(0x160, mload(G2X_Y1_LOC))
 
                 success := staticcall(gas(), 8, 0x00, 0x180, 0x00, 0x20)
-                mstore(PAIRING_SUCCESS_FLAG, success)
-                mstore(RESULT_FLAG, mload(0x00))
+                if iszero(and(success, mload(0x00))) {
+                    mstore(0x0, PAIRING_FAILED_SELECTOR)
+                    revert(0x00, 0x04)
+                }
             }
-            if iszero(
-                and(
-                    and(and(mload(PAIRING_SUCCESS_FLAG), mload(RESULT_FLAG)), mload(PAIRING_PREAMBLE_SUCCESS_FLAG)),
-                    mload(OPENING_COMMITMENT_SUCCESS_FLAG)
-                )
-            ) {
-                mstore(0x0, PROOF_FAILURE_SELECTOR)
-                revert(0x00, 0x04)
-            }
+
             {
                 mstore(0x00, 0x01)
                 return(0x00, 0x20) // Proof succeeded!

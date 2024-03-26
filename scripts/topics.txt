@@ -1,0 +1,18 @@
+# Private and Secure Gossip Learning Using Zero-knowledge Proofs
+Gossip Learning is a distributed machine learning approach enable nodes in distributed networks to update their local models by exchanging information with other nodes in the networks. Although the data privacy is protected by restricting local data transmission, it is hard to prevent malicious nodes from sharing low-quality models (e.g., fake/noisy models). Blockchain can be used to address this issue by checking the models' quality using their smart contracts and allowing clients to use the checked quality to choose the models they want to select. However, this check requires expensive cost. The cost can be reduced by exploiting zero-knowledge proof techniques.
+
+This similar aims at discussing zero-knowledge proof techniques for machine learning that can prove the quality of models. The discussion should consider (1) cutting-edge solutions supporting zero-knowledge proof in machine learning (e.g., EZKL), (2) the architecture of the solutions, and (3) the advantages and disadvantages of current solutions.
+
+1. S. Lee, H. Ko, J. Kim and H. Oh, "vCNN: Verifiable Convolutional Neural Network Based on zk-SNARKs," IEEE Transactions on Dependable and Secure Computing. https://10.1109/TDSC.2023.3348760.
+2. Zhibo Xing, Zijian Zhang, Jiamou Liu, Ziang Zhang, Meng Li, Liehuang Zhu, Giovanni Russello.
+"Zero-knowledge Proof Meets Machine Learning in Verifiability: A Survey". CoRR abs/2310.14848. 2023. https://doi.org/10.48550/arXiv.2310.14848
+
+
+# Private Federated Learning Using Homomorphic Encryption
+Federated learning is a distributed machine learning approach enable a server to train a global model by only requiring clients to share their local models. Although the data privacy is protected by restricting local data transmission, malicious servers can still infer the sensitive information (e.g., the existence of a training sample) from the shared local models.
+
+This seminar work aims to discuss approaches to prevent this issue by using homomorphic encryption (HE). The discussion should consider (1) the architecture of HE applications in federated learning, (2) the state-of-the-art HE solutions for federated learning, and (3) the advantages and disadvantages of HE applications in federated learning (e.g., performance, quality of training models). While this seminar focuses on HE applications, the comparison with classic approach (i.e., differential privacy) is nice to have.
+
+1. Daniel Truhn, et al., "Encrypted federated learning for secure decentralized collaboration in cancer image analysis". Medical Image Analysis, 2024. https://doi.org/10.1016/j.media.2023.103059
+
+2. Ehsan Hallaji, et al., "Decentralized Federated Learning: A Survey on Security and Privacy". IEEE Transactions on Big Data, 2024. https://doi.org/10.1109/TBDATA.2024.3362191

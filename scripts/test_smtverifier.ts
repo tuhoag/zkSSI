@@ -21,7 +21,7 @@ import { match } from "assert";
 import { assert } from "console";
 import { newMemEmptyTrie, SMT, SMTMemDb, BigNumberish  } from 'circomlibjs';
 import { checkHex } from '@zk-kit/smt';
-import { createSMT, getMyHashes } from './circom_smt_utils';
+import { createSMT, getMyHashes } from './util/circom_smt_utils';
 
 const TREE_DEPTH = 10;
 
@@ -154,7 +154,7 @@ async function checkExclusion(tree: SMT, _key: bigint) {
     const options: NoirProgramOptions = {
         threads: 8,
         compiled: true,
-        isJSProving: true,
+        runningClient: true,
         proverName: "Prover",
         verifierName: "Verifier",
     }

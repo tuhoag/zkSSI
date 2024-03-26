@@ -7,7 +7,7 @@ import "./tasks/noir";
 
 const POLYGON_MUMBAI_API_KEY = vars.get("POLYGON_MUMBAI_API_KEY")
 const DEV_ACCOUNT_PRIVATE_KEY = vars.get("DEV_ACCOUNT_PRIVATE_KEY");
-
+const HARDHAT_ACCOUNT_PRIVATE_KEY = vars.get("HARDHAT_ACCOUNT_PRIVATE_KEY")
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -27,6 +27,10 @@ const config: HardhatUserConfig = {
     iota: {
       url: `https://json-rpc.evm.testnet.shimmer.network/`,
       accounts: [`0x${DEV_ACCOUNT_PRIVATE_KEY}`]
+    },
+    local: {
+      url: `http://127.0.0.1:8545/`,
+      accounts: [HARDHAT_ACCOUNT_PRIVATE_KEY]
     }
   }
 };
