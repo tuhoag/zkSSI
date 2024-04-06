@@ -84,12 +84,12 @@ export function getDefaultNoirProgramOptions(): NoirProgramOptions {
     return {
         threads: 8,
         compiled: false,
-        runningClient: NOIR_RS,
+        runningClient: NARGO,
         isJSVerying: false,
         proverName: "Prover",
         verifierName: "Verifier",
         expName: "",
-        interval: 50,
+        interval: 10,
     };
 }
 
@@ -229,6 +229,9 @@ export class NoirProgram {
     }
 
     public async proveCLI(inputData: any, options?: NoirProgramOptions, stats?: PerformanceStat[]): Promise<MyProofData> {
+        // console.dir(inputData, {depth: null});
+        // throw new Error("");
+
         await this.generateInputs(inputData, options);
         const circuitDirPath = getCircuitDirPath(this.name);
         const command = `nargo prove --prover-name ${options?.proverName!}`;
@@ -360,9 +363,11 @@ export class NoirProgram {
     }
 
     public async generateInputs(inputData: any, options?: NoirProgramOptions) {
+        // console.dir(inputData, {depth: null});
         const inputPath = resolve(getCircuitDirPath(this.name), `${options?.proverName}.toml`);
+        // console.log(inputData);
         fs.writeFileSync(inputPath, toml.stringify(inputData));
-        // console.log(`Generated input at ${inputPath}`);
+        console.log(`Generated input at ${inputPath}`);
     }
 }
 

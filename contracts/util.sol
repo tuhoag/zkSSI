@@ -9,7 +9,7 @@ struct Condition {
     bytes32 attrCode;
     uint8 operator;
     uint8 value;
-    bytes32[] issuerCodes;
+    uint8[] issuerIds;
 }
 
 // attr_code: Field,

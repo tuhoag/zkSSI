@@ -23,9 +23,12 @@ contract MultiProofVerifier {
     event OnCondition(uint256 i, uint8 p, uint256 invertedIndex);
     event OnValidation(bool[] arr);
 
-    constructor(string memory _verifierName, MonoVcpGenerationVerifier _verifier) {
+    address payable public owner;
+
+    constructor(string memory _verifierName, MonoVcpGenerationVerifier _verifier, address payable _owner) {
         verifierName = _verifierName;
         verifier = _verifier;
+        owner  = _owner;
     }
 
     function getRevocationTreeRoots() public view returns (bytes32[] memory) {
@@ -36,48 +39,39 @@ contract MultiProofVerifier {
         return requirement;
     }
 
+    function getPublicKeys() public view returns (PublicKeys memory) {
+        return publicKeys;
+    }
+
     function updateRequirement(Requirement calldata _requirement, PublicKeys calldata _publicKeys, bytes32[] calldata _revocationTreeRoots) public {
         requirement = _requirement;
         publicKeys = _publicKeys;
         revocationTreeRoots = _revocationTreeRoots;
     }
 
-    function preparePublicInputs(uint8 provingTime, uint8 conditionIndex) external view returns (bytes32[] memory) {
+    function preparePublicInputs(uint8 proofIndex, uint8 provingTime) external view returns (bytes32[] memory) {
         bytes32[] memory _publicInputs = new bytes32[](10);
-        _publicInputs[0] = bytes32(requirement.conditions[conditionIndex].attrCode);
-        _publicInputs[1] = bytes32(abi.encode(requirement.conditions[conditionIndex].operator));
-        _publicInputs[2] = bytes32(abi.encode(requirement.conditions[conditionIndex].value));
-        _publicInputs[3] = bytes32(requirement.conditions[conditionIndex].issuerCodes[0]);
+        _publicInputs[0] = bytes32(requirement.conditions[proofIndex].attrCode);
+        _publicInputs[1] = bytes32(abi.encode(requirement.conditions[proofIndex].operator));
+        _publicInputs[2] = bytes32(abi.encode(requirement.conditions[proofIndex].value));
+        _publicInputs[3] = bytes32(publicKeys.publicKeys[requirement.conditions[proofIndex].issuerIds[0]].issuerCode);
+
+        // publicKeys.publicKeys[requirement.conditions[i].issuerIds[0]].issuerCode
         _publicInputs[4] = bytes32(abi.encode(2));
 
-        _publicInputs[5] = bytes32(publicKeys.publicKeys[conditionIndex].issuerCode);
-        _publicInputs[6] = publicKeys.publicKeys[conditionIndex].publicKey.x;
-        _publicInputs[7] = publicKeys.publicKeys[conditionIndex].publicKey.y;
+        _publicInputs[5] = bytes32(publicKeys.publicKeys[requirement.conditions[proofIndex].issuerIds[0]].issuerCode);
+        _publicInputs[6] = publicKeys.publicKeys[proofIndex].publicKey.x;
+        _publicInputs[7] = publicKeys.publicKeys[proofIndex].publicKey.y;
         _publicInputs[8] = bytes32(abi.encode(provingTime));
-        _publicInputs[9] = bytes32(revocationTreeRoots[conditionIndex]);
+        _publicInputs[9] = bytes32(revocationTreeRoots[proofIndex]);
 
         return _publicInputs;
     }
 
-    function verifyCondition(bytes calldata proof, uint8 provingTime, uint8 conditionIndex) external view returns  (bool) {
-        bytes32[] memory _publicInputs = this.preparePublicInputs(provingTime, conditionIndex);
+    function verifyCondition(bytes calldata proof, uint8 proofIndex, uint8 provingTime) external view returns  (bool) {
+        bytes32[] memory _publicInputs = this.preparePublicInputs(proofIndex, provingTime);
         return verifier.verify(proof, _publicInputs);
     }
-
-    function verifyConditions(bytes[] calldata proofs, uint8 provingTime) external view returns (bool[] memory) {
-        bool[] memory conditionValidations = new bool[](proofs.length);
-        bytes32[] memory _publicInputs;
-        //  = this.preparePublicInputs(provingTime, 0);
-        // conditionValidations[0] = verifier.verify(proofs[0], _publicInputs);
-
-        for (uint8 i = 0; i < proofs.length; i++) {
-            _publicInputs = this.preparePublicInputs(provingTime, i);
-            conditionValidations[i] = verifier.verify(proofs[i], _publicInputs);
-        }
-
-        return conditionValidations;
-    }
-
 
     function getNumPredicates() external view returns (uint256) {
         return requirement.predicates.length;
@@ -87,7 +81,6 @@ contract MultiProofVerifier {
         bool[] memory validations = new bool[](requirement.predicates.length);
         // emit OnValidation(validations);
 
-        // for (uint256 i = requirement.predicates.length - 1; i >= 0; i--) {
         for(uint256 i = 0; i < requirement.predicates.length; i++){
             uint256 invertedIndex = requirement.predicates.length - 1 - i;
             // emit OnCondition(i, requirement.predicates[i], invertedIndex);
@@ -113,9 +106,31 @@ contract MultiProofVerifier {
         return validations[0];
     }
 
-    function verify(bytes[] calldata proofs, uint8 provingTime) external view returns (bool) {
-        bool[] memory conditionValidations = this.verifyConditions(proofs, provingTime);
+    function verify(bytes[] calldata _proofs, uint8 _provingTime) external view returns (bool) {
+        bool[] memory conditionValidations = this.verifyConditions(_proofs, _provingTime);
 
         return this.verifyPredicates(conditionValidations);
+    }
+
+    function verifyConditions(bytes[] calldata _proofs, uint8 _provingTime) external view returns (bool[] memory) {
+        bool[] memory conditionValidations = new bool[](_proofs.length);
+        bytes32[] memory _publicInputs;
+
+        for (uint8 i = 0; i < _proofs.length; i++) {
+            _publicInputs = this.preparePublicInputs(i, _provingTime);
+            conditionValidations[i] = verifier.verify(_proofs[i], _publicInputs);
+        }
+
+        return conditionValidations;
+    }
+
+    function transfer(bytes[] calldata _proofs, uint8 provingTime, address payable _to) public {
+        if (this.verify(_proofs, provingTime)) {
+            owner = _to;
+        }
+    }
+
+    function getOwner() external view returns (address) {
+        return owner;
     }
 }

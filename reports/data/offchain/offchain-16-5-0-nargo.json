@@ -1,0 +1,74 @@
+[
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 56710,
+        "peakMemoryUsage": 10333683712,
+        "meanMemoryUsage": 2787378960.214971,
+        "stdMemoryUsage": 2407857576.1774745,
+        "trial": 0,
+        "treeHeight": 16,
+        "numConditions": 5
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 54647,
+        "peakMemoryUsage": 10339680256,
+        "meanMemoryUsage": 2759271446.483034,
+        "stdMemoryUsage": 2539150046.2567396,
+        "trial": 0,
+        "treeHeight": 16,
+        "numConditions": 5
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 58182,
+        "peakMemoryUsage": 10325065728,
+        "meanMemoryUsage": 2609977428.3745317,
+        "stdMemoryUsage": 2476825315.3966055,
+        "trial": 1,
+        "treeHeight": 16,
+        "numConditions": 5
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 49766,
+        "peakMemoryUsage": 992575488,
+        "meanMemoryUsage": 740588101.3100437,
+        "stdMemoryUsage": 98523713.1798882,
+        "trial": 1,
+        "treeHeight": 16,
+        "numConditions": 5
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 53171,
+        "peakMemoryUsage": 921567232,
+        "meanMemoryUsage": 684527047.5755103,
+        "stdMemoryUsage": 71741016.42505091,
+        "trial": 2,
+        "treeHeight": 16,
+        "numConditions": 5
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 55995,
+        "peakMemoryUsage": 10328522752,
+        "meanMemoryUsage": 2841749394.3213243,
+        "stdMemoryUsage": 2478291587.718042,
+        "trial": 2,
+        "treeHeight": 16,
+        "numConditions": 5
+    }
+]

@@ -1,0 +1,74 @@
+[
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 341109,
+        "peakMemoryUsage": 19926482944,
+        "meanMemoryUsage": 6100042326.697553,
+        "stdMemoryUsage": 5427665471.273824,
+        "trial": 0,
+        "treeHeight": 32,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 285860,
+        "peakMemoryUsage": 19709853696,
+        "meanMemoryUsage": 6568310596.390954,
+        "stdMemoryUsage": 6053672572.58436,
+        "trial": 0,
+        "treeHeight": 32,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 296875,
+        "peakMemoryUsage": 20046839808,
+        "meanMemoryUsage": 6431593685.27031,
+        "stdMemoryUsage": 6034382769.831671,
+        "trial": 1,
+        "treeHeight": 32,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 355265,
+        "peakMemoryUsage": 2564702208,
+        "meanMemoryUsage": 1790309725.2725325,
+        "stdMemoryUsage": 121223133.93076317,
+        "trial": 1,
+        "treeHeight": 32,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 368869,
+        "peakMemoryUsage": 2254340096,
+        "meanMemoryUsage": 1460412008.7845948,
+        "stdMemoryUsage": 123076546.64430793,
+        "trial": 2,
+        "treeHeight": 32,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 283936,
+        "peakMemoryUsage": 20088242176,
+        "meanMemoryUsage": 6555022774.857142,
+        "stdMemoryUsage": 6243796770.213934,
+        "trial": 2,
+        "treeHeight": 32,
+        "numConditions": 10
+    }
+]

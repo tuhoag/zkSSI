@@ -1,0 +1,74 @@
+[
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 12433,
+        "peakMemoryUsage": 1742094336,
+        "meanMemoryUsage": 1053092594.5263158,
+        "stdMemoryUsage": 393812970.76789004,
+        "trial": 0,
+        "treeHeight": 32,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 8030,
+        "peakMemoryUsage": 297336832,
+        "meanMemoryUsage": 247869159.4520548,
+        "stdMemoryUsage": 38950152.06965337,
+        "trial": 0,
+        "treeHeight": 32,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 12806,
+        "peakMemoryUsage": 1873461248,
+        "meanMemoryUsage": 1117590985.531915,
+        "stdMemoryUsage": 439803460.8137106,
+        "trial": 1,
+        "treeHeight": 32,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 8027,
+        "peakMemoryUsage": 346193920,
+        "meanMemoryUsage": 265536379.6462585,
+        "stdMemoryUsage": 46745212.042721264,
+        "trial": 1,
+        "treeHeight": 32,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 8796,
+        "peakMemoryUsage": 322224128,
+        "meanMemoryUsage": 272141394.6832298,
+        "stdMemoryUsage": 41596478.66028391,
+        "trial": 2,
+        "treeHeight": 32,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 12298,
+        "peakMemoryUsage": 1699479552,
+        "meanMemoryUsage": 1001009825.5644444,
+        "stdMemoryUsage": 392522082.6094638,
+        "trial": 2,
+        "treeHeight": 32,
+        "numConditions": 1
+    }
+]

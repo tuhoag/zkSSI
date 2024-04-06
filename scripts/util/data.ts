@@ -1,9 +1,20 @@
+import fs from "fs";
 import { bigIntToHex } from "@nomicfoundation/ethereumjs-util";
 import { Signature, derivePublicKey, signMessage } from "@zk-kit/eddsa-poseidon";
 import { bufferToBigint } from "@zk-kit/utils";
 import { assert } from "chai";
 import { SMT } from "circomlibjs";
+import { ethers } from "hardhat";
+import { resolve } from "path";
 import { poseidon2, poseidon3, poseidon4, poseidon6 } from "poseidon-lite";
+
+export function changeToHex(hexStr: string) {
+    if (hexStr == "0x0") {
+        return ethers.ZeroHash;
+    } else {
+        return ethers.zeroPadValue(hexStr, 32);
+    }
+}
 
 function paddingArray(array: Array<string>, num: number, value: any) {
     while (array.length < num) {
@@ -473,5 +484,18 @@ export function prepareDataForMultiConditions(inputs: any) {
         }
     }
 
+    // console.dir(subInputs, {depth: null});
+    // throw new Error("");
+
     return subInputs;
+}
+
+export async function writeExpData(expData: any[], expName: string, name: string) {
+    const expDataPath = resolve(process.cwd(), "reports", "data", expName, `${name}.json`);
+    fs.writeFileSync(expDataPath, JSON.stringify(expData, null, 4));
+    console.log(`wrote exp data to ${expDataPath}`);
+}
+
+export async function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }

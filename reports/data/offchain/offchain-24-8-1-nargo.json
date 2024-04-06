@@ -1,0 +1,74 @@
+[
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 74748,
+        "peakMemoryUsage": 1218117632,
+        "meanMemoryUsage": 447262627.47270113,
+        "stdMemoryUsage": 138205524.8972918,
+        "trial": 0,
+        "treeHeight": 24,
+        "numConditions": 8
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 69528,
+        "peakMemoryUsage": 1193263104,
+        "meanMemoryUsage": 420767666.49514925,
+        "stdMemoryUsage": 134248990.328691,
+        "trial": 0,
+        "treeHeight": 24,
+        "numConditions": 8
+    },
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 74721,
+        "peakMemoryUsage": 1254998016,
+        "meanMemoryUsage": 449703937.9614796,
+        "stdMemoryUsage": 140514923.16033,
+        "trial": 1,
+        "treeHeight": 24,
+        "numConditions": 8
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 61975,
+        "peakMemoryUsage": 1216348160,
+        "meanMemoryUsage": 323636164.083095,
+        "stdMemoryUsage": 83935340.94707449,
+        "trial": 1,
+        "treeHeight": 24,
+        "numConditions": 8
+    },
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 74929,
+        "peakMemoryUsage": 1202159616,
+        "meanMemoryUsage": 440716483.50900805,
+        "stdMemoryUsage": 137404212.30800724,
+        "trial": 2,
+        "treeHeight": 24,
+        "numConditions": 8
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 65906,
+        "peakMemoryUsage": 1223704576,
+        "meanMemoryUsage": 378420615.49405795,
+        "stdMemoryUsage": 109636424.05788188,
+        "trial": 2,
+        "treeHeight": 24,
+        "numConditions": 8
+    }
+]

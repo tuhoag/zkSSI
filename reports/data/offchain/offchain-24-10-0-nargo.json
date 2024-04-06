@@ -1,0 +1,74 @@
+[
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 215690,
+        "peakMemoryUsage": 17123508224,
+        "meanMemoryUsage": 5621229603.2745695,
+        "stdMemoryUsage": 4958557031.179843,
+        "trial": 0,
+        "treeHeight": 24,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 241093,
+        "peakMemoryUsage": 2070724608,
+        "meanMemoryUsage": 1061900936.8712871,
+        "stdMemoryUsage": 174628121.92593297,
+        "trial": 0,
+        "treeHeight": 24,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 249586,
+        "peakMemoryUsage": 1801191424,
+        "meanMemoryUsage": 1104862417.9656446,
+        "stdMemoryUsage": 125281397.33680537,
+        "trial": 1,
+        "treeHeight": 24,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 241422,
+        "peakMemoryUsage": 1815724032,
+        "meanMemoryUsage": 1033588735.0793437,
+        "stdMemoryUsage": 108165032.4916235,
+        "trial": 1,
+        "treeHeight": 24,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 220066,
+        "peakMemoryUsage": 17269342208,
+        "meanMemoryUsage": 5724246535.4976425,
+        "stdMemoryUsage": 5229515204.212937,
+        "trial": 2,
+        "treeHeight": 24,
+        "numConditions": 10
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 241195,
+        "peakMemoryUsage": 2063433728,
+        "meanMemoryUsage": 1360144638.905244,
+        "stdMemoryUsage": 116670651.54330608,
+        "trial": 2,
+        "treeHeight": 24,
+        "numConditions": 10
+    }
+]

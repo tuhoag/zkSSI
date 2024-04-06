@@ -2,6 +2,7 @@ import { HardhatUserConfig, vars } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ignition-ethers";
 import "@openzeppelin/hardhat-upgrades";
+import "hardhat-gas-reporter";
 
 import "./tasks/noir";
 
@@ -19,6 +20,15 @@ const config: HardhatUserConfig = {
       }
     }
   },
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false
+  },
+  ignition: {
+    blockPollingInterval: 1_000,
+    timeBeforeBumpingFees: 3 * 60 * 1_000,
+    maxFeeBumps: 4,
+    requiredConfirmations: 1,
+  },
   networks: {
     polygon: {
       url: `https://polygon-mumbai.g.alchemy.com/v2/${POLYGON_MUMBAI_API_KEY}`,
@@ -27,6 +37,9 @@ const config: HardhatUserConfig = {
     iota: {
       url: `https://json-rpc.evm.testnet.shimmer.network/`,
       accounts: [`0x${DEV_ACCOUNT_PRIVATE_KEY}`]
+    },
+    sepolia: {
+      url: ``
     },
     local: {
       url: `http://127.0.0.1:8545/`,

@@ -1,0 +1,74 @@
+[
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 7534,
+        "peakMemoryUsage": 310214656,
+        "meanMemoryUsage": 266706825.2753623,
+        "stdMemoryUsage": 60364721.12819037,
+        "trial": 0,
+        "treeHeight": 24,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 6840,
+        "peakMemoryUsage": 296026112,
+        "meanMemoryUsage": 264374845.44,
+        "stdMemoryUsage": 45788517.16962084,
+        "trial": 0,
+        "treeHeight": 24,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 11169,
+        "peakMemoryUsage": 1207795712,
+        "meanMemoryUsage": 607788376.6634146,
+        "stdMemoryUsage": 226702121.866413,
+        "trial": 1,
+        "treeHeight": 24,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 10335,
+        "peakMemoryUsage": 1151582208,
+        "meanMemoryUsage": 594405971.9788359,
+        "stdMemoryUsage": 222799868.6383076,
+        "trial": 1,
+        "treeHeight": 24,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "prove",
+        "client": "nargo",
+        "executionTime": 7470,
+        "peakMemoryUsage": 312115200,
+        "meanMemoryUsage": 268438206.5985401,
+        "stdMemoryUsage": 57893571.76913634,
+        "trial": 2,
+        "treeHeight": 24,
+        "numConditions": 1
+    },
+    {
+        "name": "MultiProof",
+        "step": "verify",
+        "client": "nargo",
+        "executionTime": 10378,
+        "peakMemoryUsage": 1203322880,
+        "meanMemoryUsage": 624328445.3052632,
+        "stdMemoryUsage": 230439924.82834354,
+        "trial": 2,
+        "treeHeight": 24,
+        "numConditions": 1
+    }
+]
