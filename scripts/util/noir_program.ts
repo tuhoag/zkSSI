@@ -84,7 +84,7 @@ export function getDefaultNoirProgramOptions(): NoirProgramOptions {
     return {
         threads: 8,
         compiled: false,
-        runningClient: NARGO,
+        runningClient: NOIR_RS,
         isJSVerying: false,
         proverName: "Prover",
         verifierName: "Verifier",

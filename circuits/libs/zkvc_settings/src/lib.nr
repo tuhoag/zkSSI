@@ -2,13 +2,13 @@
 global MAX_CLAIMS = 1;
 global MAX_CONDITION_ISSUERS = 1;
 
-global MAX_SIBLINGS = 16;
+global MAX_SIBLINGS = 32;
 
 // 1 CONDITION
-global MAX_CONDITIONS = 1;
-global MAX_CREDENTIALS = 1;
-global MAX_ISSUERS = 1;
-global MAX_PREDICATES = 1;
+// global MAX_CONDITIONS = 1;
+// global MAX_CREDENTIALS = 1;
+// global MAX_ISSUERS = 1;
+// global MAX_PREDICATES = 1;
 
 // 2 CONDITIONS
 // global MAX_CONDITIONS = 2;
@@ -23,10 +23,10 @@ global MAX_PREDICATES = 1;
 // global MAX_PREDICATES = 5;
 
 // 4 CONDITIONS
-// global MAX_CONDITIONS = 4;
-// global MAX_CREDENTIALS = 4;
-// global MAX_ISSUERS = 4;
-// global MAX_PREDICATES = 7;
+global MAX_CONDITIONS = 4;
+global MAX_CREDENTIALS = 4;
+global MAX_ISSUERS = 4;
+global MAX_PREDICATES = 7;
 
 // 5 CONDITIONS
 // global MAX_CONDITIONS = 5;

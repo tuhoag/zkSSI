@@ -120,7 +120,10 @@ def aggregate_report_data(exp_name, data):
 
         df = agg_df
 
-        df.sort_values(by=["name", "treeHeight", "numConditions", "client"], inplace=True)
+        df["mode"] = 0
+        df.loc[(df["name"] == "MultiProof"), "mode"] = 1
+        df.loc[(df["name"] == "SingleProof"), "mode"] = 0
+        df.sort_values(by=["mode", "treeHeight", "numConditions", "client"], inplace=True)
 
     elif exp_name == ON_CHAIN_VER:
         df.sort_values(by=["mode", "treeHeight", "numConditions", "networkName"], inplace=True)
@@ -128,7 +131,7 @@ def aggregate_report_data(exp_name, data):
         raise Exception("Unsupported exp_name: {}".format(exp_name))
 
 
-    df.to_csv("{}.csv".format(exp_name))
+    # df.to_csv("{}.csv".format(exp_name))
 
     return df
 
@@ -148,22 +151,27 @@ def get_title(name):
         "peakMemoryUsage_mean": "Peak Memory (bytes)",
         "peakMemoryUsage_meanM": "Peak Memory (MBs)",
         "peakMemoryUsage_meanG": "Peak Memory (GBs)",
-        "gasUsed": "Gas Consumption",
-        "gasUsedK": "Gas Consumption (kGas)",
+        "provePeakMemoryG": "Proof Generation Peak Memory (GBs)",
+        "verifyPeakMemoryG": "Off-chain Verification Peak Memory (GBs)",
+        "gasUsed": "Verification Gas Consumption",
+        "gasUsedK": "Verification Gas Consumption (kGas)",
+        "proveTimesS": "Proof Generation Time (seconds)",
+        "verifyTimeS": "Off-chain Verification Time (seconds)"
     }
 
     return data[name]
 
 def modify_data(exp_name, df):
-
-
     if exp_name in [OFF_CHAIN_PROVE, OFF_CHAIN_VER]:
         df["executionTime_meanS"] = df["executionTime_mean"] / 1000
 
         df["peakMemoryUsage_meanM"] = df["peakMemoryUsage_mean"] / 1024 / 1024
         df["peakMemoryUsage_meanG"] = df["peakMemoryUsage_mean"] / 1024 / 1024 / 1024
 
-        df["mode"] = df["name"]
+        df["provePeakMemoryG"] = df["peakMemoryUsage_meanG"]
+        df["verifyPeakMemoryG"] = df["peakMemoryUsage_meanG"]
+
+        # df["mode"] = df["name"]
         df["verifyTimeS"] = df["executionTime_meanS"]
         df["proveTimesS"] = df["executionTime_meanS"]
     else:
@@ -174,8 +182,8 @@ def modify_data(exp_name, df):
     # df.loc[df[ALGO_KEY_COL]=="hdbscan#max-kp", "algo_name"] = "CKGA(hdbscan)"
     # df.loc[df[ALGO_KEY_COL]=="km#max-kp", "algo_name"] = "CKGA(km)"
 
-        df.loc[df["mode"] == 0, "mode"] = "SingleProof"
-        df.loc[df["mode"] == 1, "mode"] = "MultiProof"
+    df.loc[df["mode"] == 0, "mode"] = "SingleProof"
+    df.loc[df["mode"] == 1, "mode"] = "MultiProof"
 
 
 def visualize_data(exp_name, df):
@@ -190,51 +198,49 @@ def visualize_onchain_verify(df):
     x_name = "numConditions"
     hue_cat_name = "mode"
     style_cat_name = "mode"
-    network = "local"
-
-    df = df[
-            (df["treeHeight"] == 32) &
-            # (df["mode"]=="MultiProof") &
-            # (agg_df.numConditions <= 5) &
-            (df["networkName"] == network)
-        ]
-
     logger.info(df)
 
-    time_fig_name = "onchain_verify-{}-{}".format("gasUsed", network)
-    # memory_fig_name = "offchain_prove-{}-{}".format("peakMemoryUsage_meanM", client)
+    for network in ["local", "iota"]:
+        cur_df = df[
+                (df["treeHeight"] == 32) &
+                # (df["mode"]=="MultiProof") &
+                # (agg_df.numConditions <= 5) &
+                (df["networkName"] == network)
+            ]
+        time_fig_name = "onchain_verify-{}-{}".format("gasUsed", network)
+        # memory_fig_name = "offchain_prove-{}-{}".format("peakMemoryUsage_meanM", client)
 
-    # sns.barplot(data=df, x="numConditions", y="gasUsed", hue="mode")
-    # plt.show()
-    visualize_line_chart(df, x_name, "gasUsedK", hue_cat_name, style_cat_name, time_fig_name)
+        # sns.barplot(data=df, x="numConditions", y="gasUsed", hue="mode")
+        # plt.show()
+        visualize_line_chart(cur_df, x_name, "gasUsedK", hue_cat_name, style_cat_name, time_fig_name)
 
 def visualize_offchain_verify(df):
     x_name = "numConditions"
     hue_cat_name = "treeHeight"
     style_cat_name = "mode"
 
-    for client in ["noir_rs", "nargo"]:
+    for client in ["noir_rs"]:
         cur_df = df[
-                # (df.step == step) &
+                (df["treeHeight"].isin([16, 32])) &
                 # (agg_df.name=="SingleProof") &
                 # (agg_df.numConditions <= 5) &
                 (df.client==client)
             ]
 
-        time_fig_name = "offchain_prove-{}-{}".format("executionTime_meanS", client)
-        memory_fig_name = "offchain_prove-{}-{}".format("peakMemoryUsage_meanG", client)
+        time_fig_name = "offchain_verify-{}-{}".format("executionTime_meanS", client)
+        memory_fig_name = "offchain_verify-{}-{}".format("peakMemoryUsage_meanG", client)
 
-        visualize_line_chart(cur_df, x_name, "executionTime_meanS", hue_cat_name, style_cat_name, time_fig_name)
-        visualize_line_chart(cur_df, x_name, "peakMemoryUsage_meanG", hue_cat_name, style_cat_name, memory_fig_name)
+        visualize_line_chart(cur_df, x_name, "verifyTimeS", hue_cat_name, style_cat_name, time_fig_name)
+        visualize_line_chart(cur_df, x_name, "verifyPeakMemoryG", hue_cat_name, style_cat_name, memory_fig_name)
 
 def visualize_offchain_prove(df):
     x_name = "numConditions"
     hue_cat_name = "treeHeight"
     style_cat_name = "mode"
 
-    for client in ["noir_rs", "nargo"]:
+    for client in ["noir_rs"]:
         cur_df = df[
-            # (df.step == step) &
+            (df["treeHeight"].isin([16, 32])) &
             # (agg_df.name=="SingleProof") &
             # (agg_df.numConditions <= 5) &
             (df.client==client)
@@ -243,8 +249,8 @@ def visualize_offchain_prove(df):
         time_fig_name = "offchain_prove-{}-{}".format("executionTime_meanS", client)
         memory_fig_name = "offchain_prove-{}-{}".format("peakMemoryUsage_meanG", client)
 
-        visualize_line_chart(cur_df, x_name, "executionTime_meanS", hue_cat_name, style_cat_name, time_fig_name)
-        visualize_line_chart(cur_df, x_name, "peakMemoryUsage_meanG", hue_cat_name, style_cat_name, memory_fig_name)
+        visualize_line_chart(cur_df, x_name, "proveTimesS", hue_cat_name, style_cat_name, time_fig_name)
+        visualize_line_chart(cur_df, x_name, "provePeakMemoryG", hue_cat_name, style_cat_name, memory_fig_name)
 
 def visualize_line_chart(df, x_name, y_name, hue_cat_name, style_cat_name, fig_name):
     x_values = df[x_name].unique()
@@ -265,12 +271,18 @@ def visualize_line_chart(df, x_name, y_name, hue_cat_name, style_cat_name, fig_n
 
     legend_handles = []
 
-    legend_handles.append(mlines.Line2D([0], [0], linestyle="none", marker="", label=get_title(hue_cat_name)))
-    for im, heu_cat_value in enumerate(hue_cat_values):
-        handle = mlines.Line2D([], [], color=colors[im], marker=marker_styles[im], label=heu_cat_value)
-        legend_handles.append(handle)
+    if style_cat_name == hue_cat_name:
+        legend_handles.append(mlines.Line2D([0], [0], linestyle="none", marker="", label=get_title(style_cat_name)))
+        for il, style_cat_value in enumerate(style_cat_values):
+            handle = mlines.Line2D([], [], linestyle=dash_styles[il], color=colors[il], marker=marker_styles[il], label=style_cat_value)
+            legend_handles.append(handle)
+    else:
+        legend_handles.append(mlines.Line2D([0], [0], linestyle="none", marker="", label=get_title(hue_cat_name)))
+        for im, heu_cat_value in enumerate(hue_cat_values):
+            handle = mlines.Line2D([], [], color=colors[im], marker=marker_styles[im], label=heu_cat_value)
+            legend_handles.append(handle)
 
-    if style_cat_name != hue_cat_name:
+
         legend_handles.append(mlines.Line2D([0], [0], linestyle="none", marker="", label=get_title(style_cat_name)))
         for il, style_cat_value in enumerate(style_cat_values):
             handle = mlines.Line2D([], [], linestyle=dash_styles[il], color=colors[0], label=style_cat_value)
@@ -282,6 +294,8 @@ def visualize_line_chart(df, x_name, y_name, hue_cat_name, style_cat_name, fig_n
     plt.xlabel(get_title(x_name))
     plt.xticks(x_values)
     plt.grid(linestyle="--", axis="y", color="grey", linewidth=0.5)
+    # plt.title(fig_name)
+    # fig.suptitle(fig_name)
 
     save_figure(fig, "./images/{}.pdf".format(fig_name))
 
@@ -297,10 +311,12 @@ def main(args):
     # if exp_name == "offchain":
 
     data = find_raw_report_data(exp_name)
-    agg_df= aggregate_report_data(exp_name, data)
-    modify_data(exp_name, agg_df)
+    df= aggregate_report_data(exp_name, data)
+    modify_data(exp_name, df)
 
-    visualize_data(exp_name, agg_df)
+    df.to_csv("{}.csv".format(exp_name))
+
+    visualize_data(exp_name, df)
     # # Opening JSON file
     # f = open('data.json')
 

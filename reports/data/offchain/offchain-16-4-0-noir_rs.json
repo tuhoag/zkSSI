@@ -1,1 +1,74 @@
-[{"name":"SingleProof","step":"prove","client":"noir_rs","executionTime":86696,"peakMemoryUsage":4868866048,"meanMemoryUsage":2991730523.761847,"stdMemoryUsage":2025024031.0453017,"trial":0,"treeHeight":16,"numConditions":4},{"name":"SingleProof","step":"verify","client":"noir_rs","executionTime":2687,"peakMemoryUsage":928137216,"meanMemoryUsage":671178250.4489796,"stdMemoryUsage":352600419.3078532,"trial":0,"treeHeight":16,"numConditions":4},{"name":"SingleProof","step":"prove","client":"noir_rs","executionTime":87381,"peakMemoryUsage":4920066048,"meanMemoryUsage":3025818221.8024096,"stdMemoryUsage":2045136886.832684,"trial":1,"treeHeight":16,"numConditions":4},{"name":"SingleProof","step":"verify","client":"noir_rs","executionTime":2114,"peakMemoryUsage":966344704,"meanMemoryUsage":638292073.0256411,"stdMemoryUsage":363334183.6868941,"trial":1,"treeHeight":16,"numConditions":4},{"name":"SingleProof","step":"prove","client":"noir_rs","executionTime":87199,"peakMemoryUsage":4917297152,"meanMemoryUsage":3025889230.531401,"stdMemoryUsage":2047885135.0300891,"trial":2,"treeHeight":16,"numConditions":4},{"name":"SingleProof","step":"verify","client":"noir_rs","executionTime":2114,"peakMemoryUsage":905183232,"meanMemoryUsage":625309223.3846154,"stdMemoryUsage":353304955.44310594,"trial":2,"treeHeight":16,"numConditions":4}]
+[
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "noir_rs",
+        "executionTime": 86696,
+        "peakMemoryUsage": 4568866048,
+        "meanMemoryUsage": 2991730523.761847,
+        "stdMemoryUsage": 2025024031.0453017,
+        "trial": 0,
+        "treeHeight": 16,
+        "numConditions": 4
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "noir_rs",
+        "executionTime": 2687,
+        "peakMemoryUsage": 928137216,
+        "meanMemoryUsage": 671178250.4489796,
+        "stdMemoryUsage": 352600419.3078532,
+        "trial": 0,
+        "treeHeight": 16,
+        "numConditions": 4
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "noir_rs",
+        "executionTime": 87381,
+        "peakMemoryUsage": 4620066048,
+        "meanMemoryUsage": 3025818221.8024096,
+        "stdMemoryUsage": 2045136886.832684,
+        "trial": 1,
+        "treeHeight": 16,
+        "numConditions": 4
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "noir_rs",
+        "executionTime": 2114,
+        "peakMemoryUsage": 966344704,
+        "meanMemoryUsage": 638292073.0256411,
+        "stdMemoryUsage": 363334183.6868941,
+        "trial": 1,
+        "treeHeight": 16,
+        "numConditions": 4
+    },
+    {
+        "name": "SingleProof",
+        "step": "prove",
+        "client": "noir_rs",
+        "executionTime": 87199,
+        "peakMemoryUsage": 4617297152,
+        "meanMemoryUsage": 3025889230.531401,
+        "stdMemoryUsage": 2047885135.0300891,
+        "trial": 2,
+        "treeHeight": 16,
+        "numConditions": 4
+    },
+    {
+        "name": "SingleProof",
+        "step": "verify",
+        "client": "noir_rs",
+        "executionTime": 2114,
+        "peakMemoryUsage": 905183232,
+        "meanMemoryUsage": 625309223.3846154,
+        "stdMemoryUsage": 353304955.44310594,
+        "trial": 2,
+        "treeHeight": 16,
+        "numConditions": 4
+    }
+]

@@ -136,7 +136,7 @@ function getCircuitName(mode: zkVCMode) {
 
 async function evaluateASetting(treeHeight: number, numConditions: number, mode: zkVCMode) {
     let expData = [];
-    const numTrials = 3;
+    const numTrials = 1;
     let options = getDefaultNoirProgramOptions();
     const circuitName = getCircuitName(mode);
     const program = await NoirProgram.createProgram(circuitName, options);
@@ -179,9 +179,10 @@ async function evaluate(args: {treeHeight: number, numConditions: number, mode: 
     if (mode == zkVCMode.SingleProof) {
         await evaluateASetting(treeHeight, numConditions, mode);
     } else if (mode == zkVCMode.MultiProof) {
-        for (let curNumConditions = 7; curNumConditions <= numConditions; curNumConditions ++) {
-            await evaluateASetting(treeHeight, curNumConditions, mode);
-        }
+        await evaluateASetting(treeHeight, numConditions, mode);
+        // for (let curNumConditions = 10; curNumConditions <= numConditions; curNumConditions ++) {
+        //     await evaluateASetting(treeHeight, curNumConditions, mode);
+        // }
     } else {
         throw new Error(`Unsupported running mode: ${mode}`);
     }
