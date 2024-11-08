@@ -14,6 +14,5 @@ If this project is interesting to your work, please cite it as follows:
   title={zkSSI: A Zero-Knowledge-Based Self-Sovereign Identity Framework}, 
   year={2024},
   pages={276-285},
-  keywords={Industries;Privacy;Portable computers;Limiting;Scalability;Instruments;Europe;self-sovereign identity;zero-knowledge proof;blockchain},
   doi={10.1109/Blockchain62396.2024.00043}}
 ```
