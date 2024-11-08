@@ -8,7 +8,7 @@ zkSSI includes three main components:
 # Citation
 If this project is interesting to your work, please cite it as follows:
 ```
-@INPROCEEDINGS{10664246,
+@INPROCEEDINGS{zkssi,
   author={Hoang, Anh-Tu and Ileri, Can Umut and Sanders, William and Schulte, Stefan},
   booktitle={2024 IEEE International Conference on Blockchain (Blockchain)}, 
   title={zkSSI: A Zero-Knowledge-Based Self-Sovereign Identity Framework}, 
